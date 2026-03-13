@@ -31,6 +31,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->string('password')),
+            'password_changed_at' => now(), // Skip password change requirement for applicants
         ]);
 
         // Assign applicant role to new registrations

@@ -19,6 +19,11 @@ class CheckPasswordChanged
 
         // If user is authenticated and hasn't changed password yet
         if ($user && is_null($user->password_changed_at)) {
+            // Skip password change requirement for applicants
+            if ($user->hasRole('applicant')) {
+                return $next($request);
+            }
+            
             // Allow access to change password route and logout
             if (!$request->routeIs('password.change') && !$request->routeIs('password.update') && !$request->routeIs('logout')) {
                 return redirect()->route('password.change');

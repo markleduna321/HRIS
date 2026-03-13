@@ -65,6 +65,11 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         return Inertia::render('job-board/page');
     })->middleware('permission:view job board')->name('job-board');
 
+    // Job Management (HR staff only)
+    Route::get('/job-management', function () {
+        return Inertia::render('job-management/page');
+    })->middleware('permission:view job postings')->name('job-management');
+
     // HRIS Module Routes (permission protected)
     // Employee Management
     Route::middleware(['permission:view employees'])->group(function () {

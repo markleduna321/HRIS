@@ -82,6 +82,12 @@ class RolePermissionSeeder extends Seeder
             'create job applications',
             'view all applications',
             'manage applications',
+            
+            // Job Posting Management (HR)
+            'view job postings',
+            'create job postings',
+            'edit job postings',
+            'delete job postings',
         ];
 
         foreach ($permissions as $permission) {
@@ -118,6 +124,8 @@ class RolePermissionSeeder extends Seeder
             'view payroll', 'create payroll', 'edit payroll', 'delete payroll',
             'view performance', 'create performance', 'edit performance', 'delete performance',
             'view users', 'create users', 'edit users', 'delete users',
+            'view job postings', 'create job postings', 'edit job postings', 'delete job postings',
+            'view all applications', 'manage applications',
         ]);
 
         // HR Manager role - same as admin (for backward compatibility)
@@ -137,6 +145,8 @@ class RolePermissionSeeder extends Seeder
             'view payroll', 'create payroll', 'edit payroll',
             'view performance', 'create performance', 'edit performance',
             'view users', 'create users', 'edit users',
+            'view job postings', 'create job postings', 'edit job postings', 'delete job postings',
+            'view all applications', 'manage applications',
         ]);
 
         // Manager role - manage team
