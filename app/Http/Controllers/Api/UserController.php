@@ -16,7 +16,21 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with('roles.permissions')->get();
+        $users = User::with('roles.permissions')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'name' => $user->first_name . ' ' . $user->last_name,
+                    'email' => $user->email,
+                    'is_active' => $user->is_active,
+                    'roles' => $user->roles,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at,
+                ];
+            });
         return response()->json($users);
     }
 
@@ -26,7 +40,8 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => ['required', Password::min(8)],
             'roles' => 'nullable|array',
@@ -41,7 +56,8 @@ class UserController extends Controller
         }
 
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'is_active' => $request->is_active ?? true,
@@ -74,7 +90,8 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $id,
             'password' => ['sometimes', Password::min(8)],
             'is_active' => 'sometimes|boolean',
@@ -89,7 +106,7 @@ class UserController extends Controller
             ], 422);
         }
 
-        $userData = $request->only(['name', 'email', 'is_active']);
+        $userData = $request->only(['first_name', 'last_name', 'email', 'is_active']);
         
         if ($request->has('password')) {
             $userData['password'] = Hash::make($request->password);

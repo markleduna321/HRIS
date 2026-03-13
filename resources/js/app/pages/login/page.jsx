@@ -1,4 +1,6 @@
 import { Head, useForm, Link } from '@inertiajs/react';
+import { useState } from 'react';
+import { EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 export default function Login() {
   const { data, setData, post, processing, errors } = useForm({
@@ -6,6 +8,10 @@ export default function Login() {
     password: '',
     remember: false,
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const submit = (e) => {
     e.preventDefault();
@@ -15,99 +21,121 @@ export default function Login() {
   return (
     <>
       <Head title="Login" />
-      <div className="flex min-h-screen items-center justify-center py-12 px-6 bg-gray-50">
-        <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-md">
-          <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-            <img
-              alt="HRIS"
-              src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-              className="mx-auto h-10 w-auto"
-            />
-            <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+      <div className="flex min-h-screen items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900">
               Sign in to your account
             </h2>
           </div>
 
-          <div className="mt-8">
-            <form onSubmit={submit} className="space-y-6">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
-                  Email address
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={data.email}
-                    onChange={(e) => setData('email', e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                  {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
-                </div>
-              </div>
+          <form onSubmit={submit} className="space-y-4">
+            {/* Email Address */}
+            <div className="relative">
+              <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={data.email}
+                onChange={(e) => setData('email', e.target.value)}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
+                required
+                autoComplete="email"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <label
+                htmlFor="email"
+                className={`absolute left-10 bg-white px-1 pointer-events-none transition-all duration-200 ${
+                  emailFocused || data.email
+                    ? 'top-0 text-xs text-blue-600 transform -translate-y-1/2'
+                    : 'top-1/2 text-sm text-gray-400 transform -translate-y-1/2'
+                }`}
+              >
+                Email Address
+              </label>
+              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+            </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
-                  Password
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={data.password}
-                    onChange={(e) => setData('password', e.target.value)}
-                    required
-                    autoComplete="current-password"
-                    className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                  {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
-                </div>
-              </div>
+            {/* Password */}
+            <div className="relative">
+              <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                value={data.password}
+                onChange={(e) => setData('password', e.target.value)}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
+                required
+                autoComplete="current-password"
+                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <label
+                htmlFor="password"
+                className={`absolute left-10 bg-white px-1 pointer-events-none transition-all duration-200 ${
+                  passwordFocused || data.password
+                    ? 'top-0 text-xs text-blue-600 transform -translate-y-1/2'
+                    : 'top-1/2 text-sm text-gray-400 transform -translate-y-1/2'
+                }`}
+              >
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+            </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember"
-                    name="remember"
-                    type="checkbox"
-                    checked={data.remember}
-                    onChange={(e) => setData('remember', e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                  />
-                  <label htmlFor="remember" className="ml-2 block text-sm text-gray-900">
-                    Remember me
-                  </label>
-                </div>
-              </div>
+            {/* Remember Me */}
+            <div className="flex items-center">
+              <input
+                id="remember"
+                name="remember"
+                type="checkbox"
+                checked={data.remember}
+                onChange={(e) => setData('remember', e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
+                Remember me
+              </label>
+            </div>
 
-              <div>
-                <button
-                  type="submit"
-                  disabled={processing}
-                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
-                >
-                  {processing ? 'Signing in...' : 'Sign in'}
-                </button>
-              </div>
-            </form>
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={processing}
+                className="flex w-full justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {processing ? 'Signing in...' : 'Sign in'}
+              </button>
+            </div>
+          </form>
 
-            <p className="mt-6 text-center text-sm text-gray-500">
-              Don't have an account?{' '}
-              <Link href="/register" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                Sign up
-              </Link>
-            </p>
+          <p className="mt-6 text-center text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-500">
+              Sign up
+            </Link>
+          </p>
 
-            <p className="mt-4 text-center text-sm text-gray-500">
-              Login credentials:
-              <br />
-              <span className="font-medium text-gray-700">admin@hris.com / password</span>
-            </p>
-          </div>
+          <p className="mt-4 text-center text-xs text-gray-500">
+            Login credentials:
+            <br />
+            <span className="font-medium text-gray-700">admin@hris.com / password</span>
+          </p>
         </div>
       </div>
     </>

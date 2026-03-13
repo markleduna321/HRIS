@@ -13,21 +13,28 @@ export default function UserFormSection({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <Input
-          label="Name"
-          value={data.name}
-          onChange={(e) => setData('name', e.target.value)}
-          error={errors.name}
+          label="First Name"
+          value={data.first_name}
+          onChange={(e) => setData('first_name', e.target.value)}
+          error={errors.first_name}
           required
         />
         <Input
-          label="Email"
-          type="email"
-          value={data.email}
-          onChange={(e) => setData('email', e.target.value)}
-          error={errors.email}
+          label="Last Name"
+          value={data.last_name}
+          onChange={(e) => setData('last_name', e.target.value)}
+          error={errors.last_name}
           required
         />
       </div>
+      <Input
+        label="Email"
+        type="email"
+        value={data.email}
+        onChange={(e) => setData('email', e.target.value)}
+        error={errors.email}
+        required
+      />
       <div className="grid grid-cols-2 gap-4">
         <Input
           label="Password"

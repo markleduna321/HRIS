@@ -45,7 +45,7 @@ const navigation = [
 ];
 
 const userNavigation = [
-  { name: 'Your profile', href: '#' },
+  { name: 'Your profile', href: '/profile' },
   { name: 'Sign out', href: '/logout', method: 'post' },
 ];
 
@@ -239,11 +239,19 @@ export default function AppLayout({ children }) {
                 <Menu as="div" className="relative">
                   <MenuButton className="-m-1.5 flex items-center p-1.5">
                     <span className="sr-only">Open user menu</span>
-                    <img
-                      alt=""
-                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                      className="h-8 w-8 rounded-full bg-gray-50"
-                    />
+                    {auth?.user?.profile_picture ? (
+                      <img
+                        alt=""
+                        src={`/storage/${auth.user.profile_picture}`}
+                        className="h-8 w-8 rounded-full bg-gray-50 object-cover"
+                      />
+                    ) : (
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600">
+                        <span className="text-sm font-medium leading-none text-white">
+                          {(auth?.user?.first_name?.[0] || '').toUpperCase()}{(auth?.user?.last_name?.[0] || '').toUpperCase()}
+                        </span>
+                      </span>
+                    )}
                     <span className="hidden lg:flex lg:items-center">
                       <span aria-hidden="true" className="ml-4 text-sm font-semibold leading-6 text-gray-900">
                         {auth?.user?.name || 'Loading...'}

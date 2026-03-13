@@ -19,7 +19,8 @@ class DatabaseSeeder extends Seeder
 
         // Create super admin user (super admin doesn't need an employee record)
         $superAdmin = User::create([
-            'name' => 'Super Admin',
+            'first_name' => 'Super',
+            'last_name' => 'Admin',
             'email' => 'admin@hris.com',
             'password' => Hash::make('password'),
             'is_active' => true,

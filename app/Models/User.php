@@ -21,11 +21,13 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
         'is_active',
         'password_changed_at',
+        'email_verified_at',
     ];
 
     /**
@@ -59,5 +61,13 @@ class User extends Authenticatable
     public function employee()
     {
         return $this->hasOne(\App\Models\Employee::class);
+    }
+
+    /**
+     * Get the user information associated with the user.
+     */
+    public function userInformation()
+    {
+        return $this->hasOne(UserInformation::class);
     }
 }

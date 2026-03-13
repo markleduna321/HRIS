@@ -43,8 +43,8 @@ export default function UserManagementPage() {
 
   // Filter users
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         (user.email || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = filterRole === 'all' || (user.roles && user.roles.some(role => role.name === filterRole));
     const matchesStatus = filterStatus === 'all' || 
                          (filterStatus === 'active' && user.is_active) || 

@@ -70,6 +70,9 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         return Inertia::render('job-management/page');
     })->middleware('permission:view job postings')->name('job-management');
 
+    // Profile (all authenticated users)
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile');
+
     // HRIS Module Routes (permission protected)
     // Employee Management
     Route::middleware(['permission:view employees'])->group(function () {

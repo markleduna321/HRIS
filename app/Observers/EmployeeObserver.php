@@ -4,67 +4,57 @@ namespace App\Observers;
 
 use App\Models\Employee;
 use App\Models\User;
+use App\Models\UserInformation;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class EmployeeObserver
 {
     /**
      * Handle the Employee "creating" event.
-     * Auto-create a user account when an employee is created.
+     * Auto-create a user account when an employee is created (if not already linked).
      */
     public function creating(Employee $employee): void
     {
         // Only create user if user_id is not already set
         if (!$employee->user_id) {
-            // Generate email if not provided
-            $email = $employee->email ?: $this->generateEmail($employee);
+            // Get user information to create user account
+            $userInfo = UserInformation::where('employee_id', $employee->id)->first();
             
-            // Generate a random password (should be sent to employee via email)
-            $defaultPassword = 'employee123'; // You should change this to send via email
-            
-            // Create user account
-            $user = User::create([
-                'name' => $employee->first_name . ' ' . $employee->last_name,
-                'email' => $email,
-                'password' => Hash::make($defaultPassword),
-                'is_active' => true,
-                'email_verified_at' => now(),
-                'password_changed_at' => null, // Force password change on first login
-            ]);
-            
-            // Assign default employee role
-            $user->assignRole('employee');
-            
-            // Link user to employee
-            $employee->user_id = $user->id;
+            if ($userInfo && $userInfo->email) {
+                // Generate a default password (should be sent to employee via email)
+                $defaultPassword = 'employee123';
+                
+                // Create user account
+                $user = User::create([
+                    'first_name' => $userInfo->first_name ?? 'Employee',
+                    'last_name' => $userInfo->last_name ?? 'User',
+                    'email' => $userInfo->email,
+                    'password' => Hash::make($defaultPassword),
+                    'is_active' => true,
+                    'email_verified_at' => now(),
+                    'password_changed_at' => null, // Force password change on first login
+                ]);
+                
+                // Assign default employee role
+                $user->assignRole('employee');
+                
+                // Link user to employee
+                $employee->user_id = $user->id;
+                
+                // Link user to user_information
+                $userInfo->update(['user_id' => $user->id]);
+            }
         }
     }
 
     /**
      * Handle the Employee "updated" event.
-     * Update linked user's name and email when employee is updated.
+     * Sync changes to linked user if needed.
      */
     public function updated(Employee $employee): void
     {
-        if ($employee->user) {
-            $updates = [];
-            
-            // Update name if employee name changed
-            $fullName = $employee->first_name . ' ' . $employee->last_name;
-            if ($employee->user->name !== $fullName) {
-                $updates['name'] = $fullName;
-            }
-            
-            // Update email if employee email changed
-            if ($employee->email && $employee->user->email !== $employee->email) {
-                $updates['email'] = $employee->email;
-            }
-            
-            if (!empty($updates)) {
-                $employee->user->update($updates);
-            }
-        }
+        // No longer need to sync - personal data is in user_information table
+        // This method can be used for other employee-specific logic in the future
     }
 
     /**
@@ -92,33 +82,17 @@ class EmployeeObserver
 
     /**
      * Handle the Employee "force deleted" event.
-     * Permanently delete the linked user account.
+     * Permanently delete the linked user account and user information.
      */
     public function forceDeleted(Employee $employee): void
     {
         if ($employee->user) {
             $employee->user->forceDelete();
         }
-    }
-
-    /**
-     * Generate email from employee name.
-     */
-    private function generateEmail(Employee $employee): string
-    {
-        $firstName = Str::slug($employee->first_name);
-        $lastName = Str::slug($employee->last_name);
-        $baseEmail = strtolower($firstName . '.' . $lastName);
         
-        // Check if email already exists
-        $email = $baseEmail . '@company.com';
-        $counter = 1;
-        
-        while (User::where('email', $email)->exists()) {
-            $email = $baseEmail . $counter . '@company.com';
-            $counter++;
+        // Also delete user information
+        if ($employee->userInformation) {
+            $employee->userInformation->forceDelete();
         }
-        
-        return $email;
     }
 }

@@ -13,6 +13,7 @@ import { userManagementReducer, rolesReducer } from '../pages/users/_redux';
 import { employeesReducer } from '../pages/employees/_redux';
 import { departmentsReducer } from '../pages/departments/_redux';
 import { employeeDocumentsReducer } from '../pages/employee-documents/_redux';
+import { profileReducer } from '../pages/profile/_redux';
 
 const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ const store = configureStore({
     employeesPage: employeesReducer,
     departmentsPage: departmentsReducer,
     employeeDocumentsPage: employeeDocumentsReducer,
+    profilePage: profileReducer,
     
     // Legacy employee reducer (from central slices)
     employees: employeeReducer,

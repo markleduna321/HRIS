@@ -15,7 +15,8 @@ export default function UsersModalSection({
 }) {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
-    name: editingUser?.name || '',
+    first_name: editingUser?.first_name || '',
+    last_name: editingUser?.last_name || '',
     email: editingUser?.email || '',
     password: '',
     password_confirmation: '',
@@ -29,7 +30,8 @@ export default function UsersModalSection({
   React.useEffect(() => {
     if (editingUser) {
       setFormData({
-        name: editingUser.name || '',
+        first_name: editingUser.first_name || '',
+        last_name: editingUser.last_name || '',
         email: editingUser.email || '',
         password: '',
         password_confirmation: '',
@@ -38,7 +40,8 @@ export default function UsersModalSection({
       });
     } else {
       setFormData({
-        name: '',
+        first_name: '',
+        last_name: '',
         email: '',
         password: '',
         password_confirmation: '',

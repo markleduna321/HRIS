@@ -46,4 +46,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // Job Applications API
     Route::apiResource('job-applications', JobApplicationController::class);
+    
+    // Profile API
+    Route::put('profile', [App\Http\Controllers\ProfileController::class, 'update']);
+    Route::post('profile/picture', [App\Http\Controllers\ProfileController::class, 'uploadProfilePicture']);
+    Route::delete('profile/picture', [App\Http\Controllers\ProfileController::class, 'deleteProfilePicture']);
+    Route::post('profile/resume', [App\Http\Controllers\ProfileController::class, 'uploadResume']);
+    Route::delete('profile/resume', [App\Http\Controllers\ProfileController::class, 'deleteResume']);
 });

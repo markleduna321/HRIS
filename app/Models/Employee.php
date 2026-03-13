@@ -11,24 +11,42 @@ class Employee extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'employee_number', 'user_id', 'department_id', 'position',
-        'first_name', 'middle_name', 'last_name',
-        'gender', 'date_of_birth',
-        'email', 'phone',
-        'address', 'city', 'state', 'zip_code', 'country',
-        'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship',
-        'date_hired', 'employment_status',
-        'sss_number', 'philhealth_number', 'pagibig_number', 'tin_number'
+        // Basic Employee Info
+        'employee_number',
+        'user_id',
+        'department_id',
+        'position',
+        
+        // Employment Information
+        'date_hired',
+        'employment_status',
+        'employment_type',
+        'work_schedule',
+        'basic_salary',
+        'immediate_supervisor_id',
+        'regularization_date',
+        'resignation_date',
+        'resignation_reason',
+        
+        // Employment-specific Notes
+        'notes',
     ];
 
     protected $casts = [
-        'date_of_birth' => 'date',
         'date_hired' => 'date',
+        'regularization_date' => 'date',
+        'resignation_date' => 'date',
+        'basic_salary' => 'decimal:2',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function userInformation()
+    {
+        return $this->hasOne(UserInformation::class);
     }
 
     public function department()
@@ -61,13 +79,21 @@ class Employee extends Model
         return $this->hasMany(EmployeeDocument::class);
     }
 
+    public function supervisor()
+    {
+        return $this->belongsTo(Employee::class, 'immediate_supervisor_id');
+    }
+
+    public function subordinates()
+    {
+        return $this->hasMany(Employee::class, 'immediate_supervisor_id');
+    }
+
     public function getFullNameAttribute()
     {
-        $name = $this->first_name . ' ';
-        if ($this->middle_name) {
-            $name .= substr($this->middle_name, 0, 1) . '. ';
+        if ($this->userInformation) {
+            return $this->userInformation->full_name;
         }
-        $name .= $this->last_name;
-        return $name;
+        return '';
     }
 }
