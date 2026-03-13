@@ -19,6 +19,10 @@ Route::get('/login', function () {
     return Inertia::render('login/page');
 })->middleware('guest')->name('login');
 
+Route::get('/register', function () {
+    return Inertia::render('register/page');
+})->middleware('guest')->name('register');
+
 // Protected routes (all authenticated users)
 Route::middleware(['auth'])->group(function () {
     // Password change routes (accessible without password.changed middleware)
@@ -55,6 +59,11 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('dashboard/page');
     })->name('dashboard');
+
+    // Job Board (accessible to all authenticated users)
+    Route::get('/job-board', function () {
+        return Inertia::render('job-board/page');
+    })->middleware('permission:view job board')->name('job-board');
 
     // HRIS Module Routes (permission protected)
     // Employee Management

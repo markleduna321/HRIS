@@ -25,12 +25,14 @@ import {
   ClipboardDocumentListIcon,
   ShieldCheckIcon,
   KeyIcon,
+  BriefcaseIcon,
 } from '@heroicons/react/24/outline';
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { Link, usePage } from '@inertiajs/react';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Job Board', href: '/job-board', icon: BriefcaseIcon, permission: 'view job board' },
   { name: 'Employees', href: '/employees', icon: UsersIcon, permission: 'view employees' },
   { name: '201 Files', href: '/employee-documents', icon: FolderIcon, permission: 'view employees' },
   { name: 'Departments', href: '/departments', icon: UserGroupIcon, permission: 'view departments' },

@@ -76,6 +76,12 @@ class RolePermissionSeeder extends Seeder
             'create permissions',
             'edit permissions',
             'delete permissions',
+            
+            // Job Board Management
+            'view job board',
+            'create job applications',
+            'view all applications',
+            'manage applications',
         ];
 
         foreach ($permissions as $permission) {
@@ -167,6 +173,19 @@ class RolePermissionSeeder extends Seeder
             'view own payroll',
             'view own performance',
         ]);
+
+        // Applicant role - job seekers with limited access
+        $applicantRole = Role::firstOrCreate(
+            ['name' => 'applicant'],
+            [
+                'level' => 0,
+                'description' => 'Job applicant with access only to job board and application submission.'
+            ]
+        );
+        $applicantRole->update(['level' => 0, 'description' => 'Job applicant with access only to job board and application submission.']);
+        $applicantRole->syncPermissions([
+            'view job board',
+            'create job applications',
+        ]);
     }
 }
-

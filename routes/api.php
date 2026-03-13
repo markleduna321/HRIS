@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\EmployeeDocumentController;
+use App\Http\Controllers\Api\JobPostingController;
+use App\Http\Controllers\Api\JobApplicationController;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -38,4 +40,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // Departments API
     Route::apiResource('departments', DepartmentController::class);
+    
+    // Job Postings API
+    Route::apiResource('job-postings', JobPostingController::class);
+    
+    // Job Applications API
+    Route::apiResource('job-applications', JobApplicationController::class);
 });
