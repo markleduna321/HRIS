@@ -14,6 +14,7 @@ import { employeesReducer } from '../pages/employees/_redux';
 import { departmentsReducer } from '../pages/departments/_redux';
 import { employeeDocumentsReducer } from '../pages/employee-documents/_redux';
 import { profileReducer } from '../pages/profile/_redux';
+import { jobRequisitionsReducer } from '../pages/job-requisitions/_redux';
 
 const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ const store = configureStore({
     departmentsPage: departmentsReducer,
     employeeDocumentsPage: employeeDocumentsReducer,
     profilePage: profileReducer,
+    jobRequisitionsPage: jobRequisitionsReducer,
     
     // Legacy employee reducer (from central slices)
     employees: employeeReducer,

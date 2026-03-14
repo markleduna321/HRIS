@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class JobPosting extends Model
 {
     protected $fillable = [
+        'job_requisition_id',
         'title',
         'department_id',
         'location',
@@ -29,6 +30,11 @@ class JobPosting extends Model
         'salary_max' => 'decimal:2',
         'closing_date' => 'date',
     ];
+
+    public function jobRequisition(): BelongsTo
+    {
+        return $this->belongsTo(JobRequisition::class);
+    }
 
     public function department(): BelongsTo
     {

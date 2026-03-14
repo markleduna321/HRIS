@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\EmployeeDocumentController;
 use App\Http\Controllers\Api\JobPostingController;
 use App\Http\Controllers\Api\JobApplicationController;
+use App\Http\Controllers\Api\JobRequisitionController;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -43,6 +44,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // Job Postings API
     Route::apiResource('job-postings', JobPostingController::class);
+    
+    // Job Requisitions API
+    Route::get('job-requisitions/statistics', [JobRequisitionController::class, 'statistics']);
+    Route::get('job-requisitions/existing-positions', [JobRequisitionController::class, 'getExistingPositions']);
+    Route::post('job-requisitions/{jobRequisition}/approve', [JobRequisitionController::class, 'approve']);
+    Route::post('job-requisitions/{jobRequisition}/reject', [JobRequisitionController::class, 'reject']);
+    Route::post('job-requisitions/{jobRequisition}/mark-in-progress', [JobRequisitionController::class, 'markInProgress']);
+    Route::post('job-requisitions/{jobRequisition}/cancel', [JobRequisitionController::class, 'cancel']);
+    Route::post('job-requisitions/{jobRequisition}/mark-viewed', [JobRequisitionController::class, 'markAsViewed']);
+    Route::apiResource('job-requisitions', JobRequisitionController::class);
     
     // Job Applications API
     Route::apiResource('job-applications', JobApplicationController::class);

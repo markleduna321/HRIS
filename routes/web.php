@@ -70,6 +70,11 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         return Inertia::render('job-management/page');
     })->middleware('permission:view job postings')->name('job-management');
 
+    // Job Requisitions (HR staff only)
+    Route::get('/job-requisitions', function () {
+        return Inertia::render('job-requisitions/page');
+    })->middleware('permission:view job postings')->name('job-requisitions');
+
     // Profile (all authenticated users)
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile');
 

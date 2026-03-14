@@ -33,6 +33,7 @@ import { Link, usePage } from '@inertiajs/react';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Job Board', href: '/job-board', icon: BriefcaseIcon, permission: 'view job board' },
+  { name: 'Job Requisitions', href: '/job-requisitions', icon: ClipboardDocumentListIcon, permission: 'view job postings' },
   { name: 'Job Management', href: '/job-management', icon: BriefcaseIcon, permission: 'view job postings' },
   { name: 'Employees', href: '/employees', icon: UsersIcon, permission: 'view employees' },
   { name: '201 Files', href: '/employee-documents', icon: FolderIcon, permission: 'view employees' },
