@@ -70,4 +70,28 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserInformation::class);
     }
+
+    /**
+     * Get the work experiences for the user.
+     */
+    public function workExperiences()
+    {
+        return $this->hasMany(WorkExperience::class)->orderBy('start_date', 'desc');
+    }
+
+    /**
+     * Get the skills associated with the user.
+     */
+    public function skills()
+    {
+        return $this->belongsToMany(Skill::class, 'user_skill')->withTimestamps();
+    }
+
+    /**
+     * Get the employee documents associated with the user through employee.
+     */
+    public function employeeDocuments()
+    {
+        return $this->hasManyThrough(EmployeeDocument::class, Employee::class, 'user_id', 'employee_id');
+    }
 }

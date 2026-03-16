@@ -6,20 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\JobPosting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class JobPostingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = JobPosting::with(['department', 'postedBy']);
+        $query = JobPosting::with(['department', 'postedBy', 'jobRequisition'])
+            ->withCount('applications');
 
         // Filter by status if provided
-        if ($request->has('status')) {
+        if ($request->has('status') && $request->status !== '') {
             $query->where('status', $request->status);
-        } else {
-            // Default to open jobs only
-            $query->open();
         }
+        // If no filter, show all job postings
 
         $jobPostings = $query->latest()->get();
 
@@ -29,6 +29,7 @@ class JobPostingController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'job_requisition_id' => 'nullable|exists:job_requisitions,id',
             'title' => 'required|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
             'location' => 'nullable|string|max:255',
@@ -41,6 +42,7 @@ class JobPostingController extends Controller
             'status' => 'nullable|in:open,closed,draft',
             'closing_date' => 'nullable|date|after:today',
             'positions_available' => 'nullable|integer|min:1',
+            'target_audience' => 'nullable|in:both,applicants,employees',
         ]);
 
         if ($validator->fails()) {
@@ -49,7 +51,7 @@ class JobPostingController extends Controller
 
         $jobPosting = JobPosting::create([
             ...$request->all(),
-            'posted_by' => auth()->id(),
+            'posted_by' => $request->user()->id,
         ]);
 
         return response()->json($jobPosting->load(['department', 'postedBy']), 201);
@@ -63,6 +65,7 @@ class JobPostingController extends Controller
     public function update(Request $request, JobPosting $jobPosting)
     {
         $validator = Validator::make($request->all(), [
+            'job_requisition_id' => 'nullable|exists:job_requisitions,id',
             'title' => 'sometimes|required|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
             'location' => 'nullable|string|max:255',
@@ -75,6 +78,7 @@ class JobPostingController extends Controller
             'status' => 'nullable|in:open,closed,draft',
             'closing_date' => 'nullable|date|after:today',
             'positions_available' => 'nullable|integer|min:1',
+            'target_audience' => 'nullable|in:both,applicants,employees',
         ]);
 
         if ($validator->fails()) {

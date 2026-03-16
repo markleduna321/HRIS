@@ -63,6 +63,20 @@ class JobRequisitionController extends Controller
     }
 
     /**
+     * Get unfilled approved requisitions for job posting linking
+     */
+    public function getUnfilledRequisitions()
+    {
+        $requisitions = JobRequisition::with(['department', 'requestedBy'])
+            ->whereIn('status', ['approved', 'in_progress'])
+            ->whereColumn('positions_filled', '<', 'number_of_positions')
+            ->latest()
+            ->get();
+
+        return response()->json($requisitions);
+    }
+
+    /**
      * Store a newly created job requisition.
      */
     public function store(Request $request)

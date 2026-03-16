@@ -41,11 +41,11 @@ class JobApplicationController extends Controller
             'job_posting_id' => 'required|exists:job_postings,id',
             'applicant_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'cover_letter' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-            'cover_letter_text' => 'nullable|string',
+            'phone' => 'required|string|max:20',
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'use_profile_resume' => 'nullable|boolean',
+            'profile_resume_path' => 'nullable|string',
+            'cover_letter_text' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -54,26 +54,24 @@ class JobApplicationController extends Controller
 
         // Check if user already applied for this job
         $existingApplication = JobApplication::where('job_posting_id', $request->job_posting_id)
-            ->where('user_id', auth()->id())
+            ->where('user_id', $request->user()->id)
             ->first();
 
         if ($existingApplication) {
             return response()->json(['message' => 'You have already applied for this position'], 422);
         }
 
-        $data = $request->except(['resume', 'cover_letter']);
-        $data['user_id'] = auth()->id();
+        $data = $request->except(['resume', 'use_profile_resume', 'profile_resume_path']);
+        $data['user_id'] = $request->user()->id;
+        $data['status'] = 'pending';
 
-        // Handle resume upload
+        // Handle resume upload or use profile resume
         if ($request->hasFile('resume')) {
             $resumePath = $request->file('resume')->store('job-applications/resumes', 'public');
             $data['resume_path'] = $resumePath;
-        }
-
-        // Handle cover letter upload
-        if ($request->hasFile('cover_letter')) {
-            $coverLetterPath = $request->file('cover_letter')->store('job-applications/cover-letters', 'public');
-            $data['cover_letter_path'] = $coverLetterPath;
+        } elseif ($request->boolean('use_profile_resume') && $request->profile_resume_path) {
+            // Use the existing profile resume path
+            $data['resume_path'] = $request->profile_resume_path;
         }
 
         $application = JobApplication::create($data);
@@ -102,7 +100,7 @@ class JobApplicationController extends Controller
         // If status is being changed from pending, mark as reviewed
         if ($request->has('status') && $jobApplication->status === 'pending' && $request->status !== 'pending') {
             $data['reviewed_at'] = now();
-            $data['reviewed_by'] = auth()->id();
+            $data['reviewed_by'] = $request->user()->id;
         }
 
         $jobApplication->update($data);

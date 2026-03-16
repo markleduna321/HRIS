@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PermissionController;
@@ -61,8 +62,11 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     })->name('dashboard');
 
     // Job Board (accessible to all authenticated users)
-    Route::get('/job-board', function () {
-        return Inertia::render('job-board/page');
+    Route::get('/job-board', function (Request $request) {
+        $user = $request->user()->load(['userInformation']);
+        return Inertia::render('job-board/page', [
+            'user' => $user
+        ]);
     })->middleware('permission:view job board')->name('job-board');
 
     // Job Management (HR staff only)

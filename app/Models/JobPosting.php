@@ -22,6 +22,7 @@ class JobPosting extends Model
         'status',
         'closing_date',
         'positions_available',
+        'target_audience',
         'posted_by',
     ];
 

@@ -43,6 +43,7 @@ class UserInformation extends Model
         
         // Current Address
         'address',
+        'barangay',
         'city',
         'state',
         'zip_code',

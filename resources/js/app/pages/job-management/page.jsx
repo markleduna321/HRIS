@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '../layout';
 import axios from 'axios';
-import { Button, IconButton, showDeleteConfirm, showSuccess } from '@/app/components';
-import { PlusIcon, PencilIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { Button, showDeleteConfirm, showSuccess } from '@/app/components';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import JobPostingModal from './_sections/JobPostingModal';
+import JobPostingCard from './_sections/JobPostingCard';
+import JobPostingViewModal from './_sections/JobPostingViewModal';
 import JobApplicationsModal from './_sections/JobApplicationsModal';
 
 export default function JobManagementPage() {
@@ -12,9 +14,12 @@ export default function JobManagementPage() {
   const [loading,setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
+  const [viewingJob, setViewingJob] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingApplications, setViewingApplications] = useState(null);
   const [isApplicationsModalOpen, setIsApplicationsModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
+  const [activeTab, setActiveTab] = useState('active-postings');
 
   useEffect(() => {
     fetchJobs();
@@ -42,6 +47,24 @@ export default function JobManagementPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingJob(null);
+  };
+
+  const handleView = (job) => {
+    setViewingJob(job);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewingJob(null);
+  };
+
+  const handleEdit = (job) => {
+    setIsViewModalOpen(false);
+    setIsViewModalOpen(false);
+    setViewingJob(null);
+    setEditingJob(job);
+    setIsModalOpen(true);
   };
 
   const handleViewApplications = (job) => {
@@ -93,142 +116,126 @@ export default function JobManagementPage() {
     return badges[status] || badges.draft;
   };
 
+  const tabs = [
+    { id: 'dashboard', name: 'Dashboard' },
+    { id: 'active-postings', name: 'Active Postings' },
+    { id: 'applicants', name: 'Applicants' },
+    { id: 'interviews', name: 'Interviews' },
+  ];
+
   return (
     <AppLayout>
       <Head title="Job Management" />
       <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-2xl font-semibold text-gray-900">Job Management</h1>
-            <p className="mt-2 text-sm text-gray-700">
-              Manage job postings and view applications.
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            <Button onClick={() => handleOpenModal()} icon={<PlusIcon className="h-5 w-5" />}>
-              Post New Job
-            </Button>
-          </div>
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="-mb-px flex space-x-8">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                  ${
+                    activeTab === tab.id
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                {tab.name}
+              </button>
+            ))}
+          </nav>
         </div>
 
-        {/* Filters */}
-        <div className="mt-6 flex gap-4">
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <option value="">All Status</option>
-            <option value="open">Open</option>
-            <option value="closed">Closed</option>
-            <option value="draft">Draft</option>
-          </select>
-        </div>
-
-        {/* Jobs Table */}
-        <div className="mt-8 flow-root">
-          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-300">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Title</th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Department</th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Salary</th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Applications</th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Closing Date</th>
-                      <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                        <span className="sr-only">Actions</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 bg-white">
-                    {loading ? (
-                      <tr>
-                        <td colSpan="8" className="py-12 text-center text-gray-500">
-                          Loading jobs...
-                        </td>
-                      </tr>
-                    ) : jobs.length === 0 ? (
-                      <tr>
-                        <td colSpan="8" className="py-12 text-center text-gray-500">
-                          No jobs found. Create your first job posting to get started.
-                        </td>
-                      </tr>
-                    ) : (
-                      jobs.map((job) => (
-                        <tr key={job.id} className="hover:bg-gray-50">
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                            <div className="font-medium text-gray-900">{job.title}</div>
-                            {job.location && (
-                              <div className="text-gray-500 text-xs">{job.location}</div>
-                            )}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {job.department?.name || '-'}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 capitalize">
-                            {job.employment_type}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {formatSalary(job.salary_min, job.salary_max)}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <button
-                              onClick={() => handleViewApplications(job)}
-                              className="text-indigo-600 hover:text-indigo-900"
-                            >
-                              {job.applications?.length || 0} applications
-                            </button>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm">
-                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusBadge(job.status)}`}>
-                              {job.status}
-                            </span>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {formatDate(job.closing_date)}
-                          </td>
-                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <div className="flex gap-2 justify-end">
-                              <IconButton
-                                variant="ghost-primary"
-                                size="sm"
-                                onClick={() => handleViewApplications(job)}
-                                title="View applications"
-                              >
-                                <EyeIcon />
-                              </IconButton>
-                              <IconButton
-                                variant="ghost-primary"
-                                size="sm"
-                                onClick={() => handleOpenModal(job)}
-                                title="Edit job"
-                              >
-                                <PencilIcon />
-                              </IconButton>
-                              <IconButton
-                                variant="ghost-danger"
-                                size="sm"
-                                onClick={() => handleDelete(job)}
-                                title="Delete job"
-                              >
-                                <TrashIcon />
-                              </IconButton>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+        {/* Active Postings Tab */}
+        {activeTab === 'active-postings' && (
+          <div>
+            <div className="sm:flex sm:items-center mb-6">
+              <div className="sm:flex-auto">
+                <h1 className="text-2xl font-semibold text-gray-900">Active Job Postings</h1>
+                <p className="mt-2 text-sm text-gray-700">
+                  Manage and track all job postings
+                </p>
+              </div>
+              <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                <Button onClick={() => handleOpenModal()} icon={<PlusIcon className="h-5 w-5" />}>
+                  Create Job Post
+                </Button>
               </div>
             </div>
+
+            {/* Search and Filters */}
+            <div className="flex gap-4 mb-6">
+              <input
+                type="search"
+                placeholder="Search job postings..."
+                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">All Status</option>
+                <option value="open">Active</option>
+                <option value="closed">Closed</option>
+                <option value="draft">Draft</option>
+              </select>
+            </div>
+
+            {/* Job Postings List */}
+            {loading && jobs.length === 0 ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading job postings...</p>
+                </div>
+              </div>
+            ) : jobs.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                <div className="text-gray-400 text-5xl mb-4">💼</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No job postings found</h3>
+                <p className="text-gray-600 mb-6">Get started by creating your first job posting.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {jobs.map((job) => (
+                  <JobPostingCard
+                    key={job.id}
+                    job={job}
+                    onView={handleView}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* Dashboard Tab */}
+        {activeTab === 'dashboard' && (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Dashboard</h2>
+            <p className="text-gray-600">Dashboard coming soon...</p>
+          </div>
+        )}
+
+        {/* Applicants Tab */}
+        {activeTab === 'applicants' && (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Applicants</h2>
+            <p className="text-gray-600">Applicants view coming soon...</p>
+          </div>
+        )}
+
+        {/* Interviews Tab */}
+        {activeTab === 'interviews' && (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Interviews</h2>
+            <p className="text-gray-600">Interviews schedule coming soon...</p>
+          </div>
+        )}
       </div>
 
       <JobPostingModal
@@ -236,6 +243,14 @@ export default function JobManagementPage() {
         onClose={handleCloseModal}
         editingJob={editingJob}
         onSuccess={fetchJobs}
+      />
+
+      <JobPostingViewModal
+        isOpen={isViewModalOpen}
+        onClose={handleCloseViewModal}
+        job={viewingJob}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
 
       <JobApplicationsModal
