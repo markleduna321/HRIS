@@ -1,77 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Head, usePage } from '@inertiajs/react';
+import { useDispatch, useSelector } from 'react-redux';
 import AppLayout from '../layout';
-import axios from 'axios';
 import { BriefcaseIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import JobCard from './_sections/JobCard';
 import ViewJobModal from './_sections/ViewJobModal';
 import JobApplicationModal from './_sections/JobApplicationModal';
 import QuickSetupModal from './_sections/QuickSetupModal';
 import { showError } from '@/app/components';
+import { fetchJobBoardPostings, fetchCurrentUser, fetchUserApplications, setFilters, setSelectedJob, clearSelectedJob, setUser } from './_redux';
 
 export default function JobBoardPage({ user: pageUser }) {
+  const dispatch = useDispatch();
   const { auth } = usePage().props;
-  const [user, setUser] = useState(pageUser || auth?.user);
-  const [jobs, setJobs] = useState([]);
-  const [filteredJobs, setFilteredJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedJob, setSelectedJob] = useState(null);
+  const { jobs, user, selectedJob, appliedJobIds, loading, filters } = useSelector((state) => state.jobBoardPage);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isQuickSetupModalOpen, setIsQuickSetupModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('open');
-
-  const fetchUser = async () => {
-    try {
-      const response = await axios.get('/api/user/profile');
-      setUser(response.data);
-    } catch (error) {
-      console.error('Failed to fetch user:', error);
-    }
-  };
 
   useEffect(() => {
-    fetchJobs();
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    filterJobs();
-  }, [jobs, searchQuery, statusFilter]);
-
-  const fetchJobs = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get('/api/job-postings');
-      // Filter to only show open jobs for applicants or jobs with target_audience 'both' or 'applicants'
-      const openJobs = response.data.filter(job => 
-        job.status === 'open' && 
-        (job.target_audience === 'both' || job.target_audience === 'applicants' || !job.target_audience)
-      );
-      setJobs(openJobs);
-    } catch (error) {
-      console.error('Failed to fetch jobs:', error);
-      showError({
-        title: 'Error',
-        content: 'Failed to load job postings.',
-      });
-    } finally {
-      setLoading(false);
+    // Initialize user from props if available
+    if (pageUser || auth?.user) {
+      dispatch(setUser(pageUser || auth.user));
     }
-  };
+    dispatch(fetchJobBoardPostings());
+    dispatch(fetchCurrentUser());
+    dispatch(fetchUserApplications());
+  }, [dispatch]);
 
-  const filterJobs = () => {
+  // Client-side filtering
+  const filteredJobs = useMemo(() => {
     let filtered = jobs;
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(job => job.status === statusFilter);
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(job => job.status === filters.status);
     }
 
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (filters.search) {
+      const query = filters.search.toLowerCase();
       filtered = filtered.filter(job =>
         job.title.toLowerCase().includes(query) ||
         job.department?.name.toLowerCase().includes(query) ||
@@ -79,49 +45,50 @@ export default function JobBoardPage({ user: pageUser }) {
       );
     }
 
-    setFilteredJobs(filtered);
-  };
+    return filtered;
+  }, [jobs, filters]);
 
   const handleViewJob = (job) => {
-    setSelectedJob(job);
+    dispatch(setSelectedJob(job));
     setIsViewModalOpen(true);
   };
 
   const handleApply = (job) => {
-    // Check if user has phone number and resume
     const hasPhone = user?.user_information?.phone;
     const hasResume = user?.user_information?.resume_path;
 
+    dispatch(setSelectedJob(job));
     if (!hasPhone || !hasResume) {
-      // Show quick setup modal
-      setSelectedJob(job);
       setIsQuickSetupModalOpen(true);
     } else {
-      // Show apply modal directly
-      setSelectedJob(job);
       setIsApplyModalOpen(true);
     }
   };
 
   const handleQuickSetupComplete = async () => {
-    await fetchUser();
+    await dispatch(fetchCurrentUser()).unwrap();
     setIsQuickSetupModalOpen(false);
     setIsApplyModalOpen(true);
   };
 
   const handleCloseViewModal = () => {
     setIsViewModalOpen(false);
-    setSelectedJob(null);
+    dispatch(clearSelectedJob());
   };
 
   const handleCloseApplyModal = () => {
     setIsApplyModalOpen(false);
-    setSelectedJob(null);
+    dispatch(clearSelectedJob());
   };
 
   const handleCloseQuickSetupModal = () => {
     setIsQuickSetupModalOpen(false);
-    setSelectedJob(null);
+    dispatch(clearSelectedJob());
+  };
+
+  const handleApplicationSuccess = () => {
+    dispatch(fetchJobBoardPostings());
+    dispatch(fetchUserApplications());
   };
 
   return (
@@ -142,14 +109,14 @@ export default function JobBoardPage({ user: pageUser }) {
               <input
                 type="text"
                 placeholder="Search job postings..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={filters.search}
+                onChange={(e) => dispatch(setFilters({ search: e.target.value }))}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={filters.status}
+              onChange={(e) => dispatch(setFilters({ status: e.target.value }))}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
             >
               <option value="all">All Status</option>
@@ -172,13 +139,13 @@ export default function JobBoardPage({ user: pageUser }) {
               <BriefcaseIcon className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No job openings available</h3>
               <p className="mt-1 text-sm text-gray-500">
-                {searchQuery ? 'Try adjusting your search criteria' : 'Check back later for new opportunities!'}
+                {filters.search ? 'Try adjusting your search criteria' : 'Check back later for new opportunities!'}
               </p>
             </div>
           ) : (
             <div className="space-y-4">
               {filteredJobs.map((job) => (
-                <JobCard key={job.id} job={job} onClick={handleViewJob} />
+                <JobCard key={job.id} job={job} onClick={handleViewJob} hasApplied={appliedJobIds.includes(job.id)} />
               ))}
             </div>
           )}
@@ -191,6 +158,7 @@ export default function JobBoardPage({ user: pageUser }) {
         onClose={handleCloseViewModal}
         job={selectedJob}
         onApply={handleApply}
+        hasApplied={selectedJob ? appliedJobIds.includes(selectedJob.id) : false}
       />
 
       <JobApplicationModal
@@ -198,7 +166,7 @@ export default function JobBoardPage({ user: pageUser }) {
         onClose={handleCloseApplyModal}
         job={selectedJob}
         user={user}
-        onSuccess={fetchJobs}
+        onSuccess={handleApplicationSuccess}
       />
 
       <QuickSetupModal

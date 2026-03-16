@@ -88,16 +88,13 @@ export default function JobApplicationModal({ isOpen, onClose, job, user, onSucc
     submitData.append('applicant_name', formData.applicant_name);
     submitData.append('email', formData.email);
     submitData.append('phone', formData.phone);
-    
-    if (formData.cover_letter_text) {
-      submitData.append('cover_letter_text', formData.cover_letter_text);
-    }
+    submitData.append('cover_letter_text', formData.cover_letter_text);
     
     // Use uploaded resume or profile resume
     if (resume) {
       submitData.append('resume', resume);
     } else if (profileResume && !uploadNewResume) {
-      submitData.append('use_profile_resume', 'true');
+      submitData.append('use_profile_resume', '1');
       submitData.append('profile_resume_path', profileResume.file_path);
     }
 

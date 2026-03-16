@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 
-export default function ViewJobModal({ isOpen, onClose, job, onApply }) {
+export default function ViewJobModal({ isOpen, onClose, job, onApply, hasApplied }) {
   if (!job) return null;
 
   const formatDate = (dateString) => {
@@ -188,19 +188,26 @@ export default function ViewJobModal({ isOpen, onClose, job, onApply }) {
         >
           Close
         </Button>
-        <Button
-          type="button"
-          variant="primary"
-          onClick={handleApplyClick}
-          className="flex-1"
-          icon={
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-          }
-        >
-          Apply for this Position
-        </Button>
+        {hasApplied ? (
+          <div className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium">
+            <CheckCircleIcon className="h-5 w-5" />
+            Already Applied
+          </div>
+        ) : (
+          <Button
+            type="button"
+            variant="primary"
+            onClick={handleApplyClick}
+            className="flex-1"
+            icon={
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            }
+          >
+            Apply for this Position
+          </Button>
+        )}
       </div>
     </Modal>
   );

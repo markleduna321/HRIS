@@ -1,7 +1,7 @@
-import { BriefcaseIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { BriefcaseIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 
-export default function JobCard({ job, onClick }) {
+export default function JobCard({ job, onClick, hasApplied }) {
   const formatDate = (dateString) => {
     if (!dateString) return null;
     try {
@@ -62,6 +62,12 @@ export default function JobCard({ job, onClick }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
             {job.target_audience === 'both' ? 'Both' : job.target_audience === 'applicants' ? 'Applicants' : 'Employees'}
+          </span>
+        )}
+        {hasApplied && (
+          <span className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 border border-green-200 flex items-center gap-1">
+            <CheckCircleIcon className="h-3.5 w-3.5" />
+            Applied
           </span>
         )}
       </div>

@@ -1,43 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
+import { useDispatch, useSelector } from 'react-redux';
 import AppLayout from '../layout';
-import axios from 'axios';
 import { Button, showDeleteConfirm, showSuccess } from '@/app/components';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import JobPostingModal from './_sections/JobPostingModal';
 import JobPostingCard from './_sections/JobPostingCard';
 import JobPostingViewModal from './_sections/JobPostingViewModal';
 import JobApplicationsModal from './_sections/JobApplicationsModal';
+import { fetchJobPostings, deleteJobPosting, setFilters, setActiveTab } from './_redux';
 
 export default function JobManagementPage() {
-  const [jobs, setJobs] = useState([]);
-  const [loading,setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { jobPostings, loading, filters, activeTab } = useSelector((state) => state.jobManagementPage);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [viewingJob, setViewingJob] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingApplications, setViewingApplications] = useState(null);
   const [isApplicationsModalOpen, setIsApplicationsModalOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('');
-  const [activeTab, setActiveTab] = useState('active-postings');
 
   useEffect(() => {
-    fetchJobs();
-  }, [filterStatus]);
-
-  const fetchJobs = async () => {
-    try {
-      const params = {};
-      if (filterStatus) params.status = filterStatus;
-      
-      const response = await axios.get('/api/job-postings', { params });
-      setJobs(response.data);
-    } catch (error) {
-      console.error('Failed to fetch jobs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const params = {};
+    if (filters.status) params.status = filters.status;
+    dispatch(fetchJobPostings(params));
+  }, [dispatch, filters.status]);
 
   const handleOpenModal = (job = null) => {
     setEditingJob(job);
@@ -61,7 +48,6 @@ export default function JobManagementPage() {
 
   const handleEdit = (job) => {
     setIsViewModalOpen(false);
-    setIsViewModalOpen(false);
     setViewingJob(null);
     setEditingJob(job);
     setIsModalOpen(true);
@@ -83,12 +69,11 @@ export default function JobManagementPage() {
       content: 'Are you sure you want to delete this job posting? All applications will also be deleted.',
       onOk: async () => {
         try {
-          await axios.delete(`/api/job-postings/${job.id}`);
+          await dispatch(deleteJobPosting(job.id)).unwrap();
           showSuccess({
             title: 'Job Deleted',
             content: `${job.title} has been deleted successfully.`,
           });
-          fetchJobs();
         } catch (error) {
           console.error('Delete failed:', error);
         }
@@ -96,24 +81,10 @@ export default function JobManagementPage() {
     });
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  const formatSalary = (min, max) => {
-    if (!min && !max) return 'Competitive';
-    if (!max) return `₱${parseFloat(min).toLocaleString()}+`;
-    return `₱${parseFloat(min).toLocaleString()} - ₱${parseFloat(max).toLocaleString()}`;
-  };
-
-  const getStatusBadge = (status) => {
-    const badges = {
-      open: 'bg-green-50 text-green-700',
-      closed: 'bg-red-50 text-red-700',
-      draft: 'bg-gray-50 text-gray-700',
-    };
-    return badges[status] || badges.draft;
+  const handleSuccess = () => {
+    const params = {};
+    if (filters.status) params.status = filters.status;
+    dispatch(fetchJobPostings(params));
   };
 
   const tabs = [
@@ -133,7 +104,7 @@ export default function JobManagementPage() {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => dispatch(setActiveTab(tab.id))}
                 className={`
                   whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
                   ${
@@ -174,8 +145,8 @@ export default function JobManagementPage() {
                 className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               />
               <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                value={filters.status}
+                onChange={(e) => dispatch(setFilters({ status: e.target.value }))}
                 className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               >
                 <option value="">All Status</option>
@@ -186,14 +157,14 @@ export default function JobManagementPage() {
             </div>
 
             {/* Job Postings List */}
-            {loading && jobs.length === 0 ? (
+            {loading && jobPostings.length === 0 ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
                   <p className="mt-4 text-gray-600">Loading job postings...</p>
                 </div>
               </div>
-            ) : jobs.length === 0 ? (
+            ) : jobPostings.length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
                 <div className="text-gray-400 text-5xl mb-4">💼</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No job postings found</h3>
@@ -201,7 +172,7 @@ export default function JobManagementPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
-                {jobs.map((job) => (
+                {jobPostings.map((job) => (
                   <JobPostingCard
                     key={job.id}
                     job={job}
@@ -242,7 +213,7 @@ export default function JobManagementPage() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         editingJob={editingJob}
-        onSuccess={fetchJobs}
+        onSuccess={handleSuccess}
       />
 
       <JobPostingViewModal
