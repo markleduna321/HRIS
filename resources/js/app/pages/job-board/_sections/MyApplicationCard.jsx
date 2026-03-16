@@ -1,4 +1,4 @@
-import { BriefcaseIcon, MapPinIcon, CalendarDaysIcon, ClockIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { BriefcaseIcon, MapPinIcon, CalendarDaysIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon } from '@heroicons/react/24/solid';
 import { format } from 'date-fns';
 
@@ -26,7 +26,10 @@ export default function MyApplicationCard({ application, onView }) {
   const status = statusConfig[application.status] || statusConfig.pending;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-6 py-5 hover:shadow-sm transition-all">
+    <div
+      onClick={() => onView(application)}
+      className="bg-white border border-gray-200 rounded-lg px-6 py-5 hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer"
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           {/* Title + Status */}
@@ -65,14 +68,6 @@ export default function MyApplicationCard({ application, onView }) {
           </div>
         </div>
 
-        {/* View Button */}
-        <button
-          onClick={() => onView(application)}
-          className="ml-4 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-          title="View Details"
-        >
-          <EyeIcon className="h-5 w-5" />
-        </button>
       </div>
     </div>
   );

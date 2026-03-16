@@ -130,6 +130,62 @@ export default function ApplicationDetailsModal({ isOpen, onClose, application }
         </div>
       </div>
 
+      {/* Position Details */}
+      <div className="border-t pt-4 mt-4">
+        <h4 className="text-sm font-bold text-gray-900 mb-3">Position Details</h4>
+        <div className="space-y-2">
+          <div className="flex">
+            <span className="text-sm text-gray-500 w-32 flex-shrink-0">Job Title:</span>
+            <span className="text-sm text-gray-900">{job?.title || '-'}</span>
+          </div>
+          <div className="flex">
+            <span className="text-sm text-gray-500 w-32 flex-shrink-0">Department:</span>
+            <span className="text-sm text-gray-900">{job?.department?.name || '-'}</span>
+          </div>
+          <div className="flex">
+            <span className="text-sm text-gray-500 w-32 flex-shrink-0">Location:</span>
+            <span className="text-sm text-gray-900">{job?.location || '-'}</span>
+          </div>
+          <div className="flex">
+            <span className="text-sm text-gray-500 w-32 flex-shrink-0">Applied Date:</span>
+            <span className="text-sm text-gray-900">{formatDate(application.created_at) || '-'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Submitted Information */}
+      <div className="border-t pt-4 mt-4">
+        <h4 className="text-sm font-bold text-gray-900 mb-3">Your Submitted Information</h4>
+        <div className="space-y-2">
+          <div className="flex">
+            <span className="text-sm text-gray-500 w-32 flex-shrink-0">Name:</span>
+            <span className="text-sm text-gray-900">{application.applicant_name || '-'}</span>
+          </div>
+          <div className="flex">
+            <span className="text-sm text-gray-500 w-32 flex-shrink-0">Email:</span>
+            <span className="text-sm text-gray-900">{application.email || '-'}</span>
+          </div>
+          <div className="flex">
+            <span className="text-sm text-gray-500 w-32 flex-shrink-0">Phone:</span>
+            <span className="text-sm text-gray-900">{application.phone || '-'}</span>
+          </div>
+          <div className="flex">
+            <span className="text-sm text-gray-500 w-32 flex-shrink-0">Resume:</span>
+            <span className="text-sm text-gray-900 break-all">{application.resume_path ? application.resume_path.split('/').pop() : '-'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Cover Letter */}
+      {application.cover_letter_text && (
+        <div className="border-t pt-4 mt-4">
+          <h4 className="text-sm font-bold text-gray-900 mb-3">Cover Letter</h4>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{application.cover_letter_text}</p>
+          </div>
+        </div>
+      )}
+
       {/* Notes */}
       {application.notes && !isRejected && (
         <div className="border-t pt-4 mt-4">
