@@ -23,7 +23,7 @@ export const fetchUserApplications = createAsyncThunk(
   'jobBoard/fetchUserApplications',
   async (_, { rejectWithValue }) => {
     try {
-      const data = await jobApplicationService.fetchJobApplications();
+      const data = await jobApplicationService.fetchJobApplications({ mine: 1 });
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);

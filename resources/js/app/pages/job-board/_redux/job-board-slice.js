@@ -6,6 +6,8 @@ const initialState = {
   user: null,
   selectedJob: null,
   appliedJobIds: [],
+  userApplications: [],
+  activeTab: 'job-openings',
   loading: false,
   error: null,
   filters: {
@@ -36,6 +38,9 @@ const jobBoardSlice = createSlice({
     setUser: (state, action) => {
       state.user = action.payload;
     },
+    setActiveTab: (state, action) => {
+      state.activeTab = action.payload;
+    },
   },
   extraReducers: (builder) => {
     // Fetch job board postings
@@ -62,6 +67,7 @@ const jobBoardSlice = createSlice({
     // Fetch user applications
     builder
       .addCase(thunks.fetchUserApplications.fulfilled, (state, action) => {
+        state.userApplications = action.payload;
         state.appliedJobIds = action.payload.map((app) => app.job_posting_id);
       });
 
@@ -92,5 +98,5 @@ const jobBoardSlice = createSlice({
   },
 });
 
-export const { setFilters, clearFilters, clearError, setSelectedJob, clearSelectedJob, setUser } = jobBoardSlice.actions;
+export const { setFilters, clearFilters, clearError, setSelectedJob, clearSelectedJob, setUser, setActiveTab } = jobBoardSlice.actions;
 export default jobBoardSlice.reducer;

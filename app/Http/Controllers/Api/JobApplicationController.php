@@ -15,6 +15,11 @@ class JobApplicationController extends Controller
     {
         $query = JobApplication::with(['jobPosting.department', 'user']);
 
+        // If 'mine' param is set, scope to current user
+        if ($request->boolean('mine')) {
+            $query->where('user_id', $request->user()->id);
+        }
+
         // Filter by job posting if provided
         if ($request->has('job_posting_id')) {
             $query->where('job_posting_id', $request->job_posting_id);
