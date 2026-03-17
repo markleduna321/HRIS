@@ -94,6 +94,9 @@ class Employee extends Model
         if ($this->userInformation) {
             return $this->userInformation->full_name;
         }
+        if ($this->user) {
+            return trim($this->user->first_name . ' ' . $this->user->last_name);
+        }
         return '';
     }
 }

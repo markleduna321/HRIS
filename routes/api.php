@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\EmployeeDocumentController;
 use App\Http\Controllers\Api\JobPostingController;
 use App\Http\Controllers\Api\JobApplicationController;
 use App\Http\Controllers\Api\JobRequisitionController;
+use App\Http\Controllers\Api\InterviewController;
 use App\Http\Controllers\Api\WorkExperienceController;
 use App\Http\Controllers\Api\SkillController;
 
@@ -58,6 +59,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // Job Applications API
     Route::apiResource('job-applications', JobApplicationController::class);
+    
+    // Interviews API
+    Route::apiResource('interviews', InterviewController::class);
     
     // Profile API
     Route::get('user/profile', function (Request $request) {

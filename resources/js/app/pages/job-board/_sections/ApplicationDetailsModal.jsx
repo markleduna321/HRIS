@@ -1,6 +1,7 @@
 import { Modal } from '@/app/components';
 import { format } from 'date-fns';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { CalendarIcon, ClockIcon, MapPinIcon, VideoCameraIcon, LinkIcon } from '@heroicons/react/24/outline';
 
 const progressSteps = [
   { key: 'pending', label: 'Application Submitted', description: 'Your application has been received' },
@@ -8,6 +9,7 @@ const progressSteps = [
   { key: 'interview', label: 'Initial Interview', description: 'First interview scheduled' },
   { key: 'shortlisted', label: 'Interview Passed', description: 'Moved to next round' },
   { key: 'final_interview', label: 'Final Interview', description: 'Final interview scheduled' },
+  { key: 'job_offer', label: 'Job Offer', description: 'You have received a job offer' },
   { key: 'accepted', label: 'Contract Signing', description: 'Preparing contract' },
   { key: 'hired', label: 'Hired!', description: 'Welcome to the team!' },
 ];
@@ -18,8 +20,9 @@ const statusOrder = {
   interview: 2,
   shortlisted: 3,
   final_interview: 4,
-  accepted: 5,
-  hired: 6,
+  job_offer: 5,
+  accepted: 6,
+  hired: 7,
 };
 
 export default function ApplicationDetailsModal({ isOpen, onClose, application }) {
@@ -38,6 +41,30 @@ export default function ApplicationDetailsModal({ isOpen, onClose, application }
   };
 
   const isRejected = application.status === 'rejected';
+
+  // Get interviews by type
+  const interviews = application.interviews || [];
+  const initialInterview = interviews.find(i => i.type === 'initial') || (interviews.length > 0 ? interviews[0] : null);
+  const finalInterview = interviews.find(i => i.type === 'final') || null;
+
+  const getInterviewForStep = (stepKey) => {
+    if (stepKey === 'interview') return initialInterview;
+    if (stepKey === 'final_interview') return finalInterview;
+    return null;
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    try {
+      const [h, m] = timeString.split(':');
+      const hour = parseInt(h, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12}:${m} ${ampm}`;
+    } catch {
+      return timeString;
+    }
+  };
 
   return (
     <Modal open={isOpen} onClose={onClose} size="md" title="Application Details">
@@ -108,6 +135,50 @@ export default function ApplicationDetailsModal({ isOpen, onClose, application }
                   <p className={`text-xs mt-0.5 ${isCompleted ? 'text-gray-500' : 'text-gray-400'}`}>
                     {step.description}
                   </p>
+
+                  {/* Interview details embedded in interview steps */}
+                  {(step.key === 'interview' || step.key === 'final_interview') && isCompleted && getInterviewForStep(step.key) && (() => {
+                    const interviewData = getInterviewForStep(step.key);
+                    return (
+                    <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-1.5">
+                      <div className="flex items-center gap-2 text-xs text-blue-800">
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        <span className="font-medium">
+                          {formatDate(interviewData.interview_date)} at {formatTime(interviewData.interview_time)}
+                        </span>
+                      </div>
+                      {interviewData.mode === 'online' && interviewData.meeting_link && (
+                        <div className="flex items-center gap-2 text-xs text-blue-700">
+                          <VideoCameraIcon className="h-3.5 w-3.5" />
+                          <a
+                            href={interviewData.meeting_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline hover:text-blue-900 break-all"
+                          >
+                            {interviewData.meeting_link}
+                          </a>
+                        </div>
+                      )}
+                      {interviewData.mode === 'in-person' && interviewData.location && (
+                        <div className="flex items-center gap-2 text-xs text-blue-700">
+                          <MapPinIcon className="h-3.5 w-3.5" />
+                          <span>{interviewData.location}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-xs text-blue-600">
+                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                          interviewData.mode === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {interviewData.mode === 'online' ? 'Online' : 'In-Person'}
+                        </span>
+                      </div>
+                      {interviewData.notes && (
+                        <p className="text-xs text-blue-600 italic">{interviewData.notes}</p>
+                      )}
+                    </div>
+                    );
+                  })()}
                 </div>
               </div>
             );

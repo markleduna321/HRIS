@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use App\Models\JobApplication;
 use App\Models\JobPosting;
+use App\Models\UserInformation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -13,7 +15,7 @@ class JobApplicationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = JobApplication::with(['jobPosting.department', 'user']);
+        $query = JobApplication::with(['jobPosting.department', 'user', 'interviews.scheduledBy']);
 
         // If 'mine' param is set, scope to current user
         if ($request->boolean('mine')) {
@@ -92,7 +94,7 @@ class JobApplicationController extends Controller
     public function update(Request $request, JobApplication $jobApplication)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'sometimes|required|in:pending,reviewing,shortlisted,interview,rejected,accepted',
+            'status' => 'sometimes|required|in:pending,reviewing,shortlisted,interview,final_interview,job_offer,accepted,contract_signing,hired,rejected',
             'notes' => 'nullable|string',
         ]);
 
@@ -109,6 +111,57 @@ class JobApplicationController extends Controller
         }
 
         $jobApplication->update($data);
+
+        // Auto-create employee record when status becomes hired
+        if ($request->input('status') === 'hired' && $jobApplication->wasChanged('status')) {
+            $jobApplication->load(['jobPosting', 'user']);
+
+            // Generate employee number in YYMMDDNN format (matching manual creation)
+            $datePrefix = now()->format('ymd');
+            $todayCount = Employee::withTrashed()
+                ->where('employee_number', 'like', $datePrefix . '%')
+                ->count();
+            $nextSeq = str_pad($todayCount + 1, 2, '0', STR_PAD_LEFT);
+            $employeeNumber = $datePrefix . $nextSeq;
+
+            // Parse applicant name into first/last
+            $nameParts = explode(' ', trim($jobApplication->applicant_name), 2);
+            $firstName = $nameParts[0] ?? '';
+            $lastName = $nameParts[1] ?? '';
+
+            $employee = Employee::create([
+                'employee_number' => $employeeNumber,
+                'user_id' => $jobApplication->user_id,
+                'department_id' => $jobApplication->jobPosting->department_id,
+                'position' => $jobApplication->jobPosting->title,
+                'date_hired' => now()->toDateString(),
+                'employment_status' => 'probationary',
+                'employment_type' => 'full-time',
+                'basic_salary' => 0,
+            ]);
+
+            // Create UserInformation if it doesn't exist
+            $existingInfo = UserInformation::where('user_id', $jobApplication->user_id)->first();
+            if (!$existingInfo) {
+                UserInformation::create([
+                    'user_id' => $jobApplication->user_id,
+                    'employee_id' => $employee->id,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => $jobApplication->email,
+                    'phone' => $jobApplication->phone,
+                ]);
+            } else {
+                $existingInfo->update(['employee_id' => $employee->id]);
+            }
+
+            // Update user role from applicant to employee
+            $user = $jobApplication->user;
+            if ($user) {
+                $user->removeRole('applicant');
+                $user->assignRole('employee');
+            }
+        }
 
         return response()->json($jobApplication->load(['jobPosting', 'reviewedBy']));
     }

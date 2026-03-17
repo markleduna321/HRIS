@@ -8,6 +8,7 @@ import JobPostingModal from './_sections/JobPostingModal';
 import JobPostingCard from './_sections/JobPostingCard';
 import JobPostingViewModal from './_sections/JobPostingViewModal';
 import JobApplicationsModal from './_sections/JobApplicationsModal';
+import ApplicationViewModal from './_sections/ApplicationViewModal';
 import ApplicantCard from './_sections/ApplicantCard';
 import { fetchJobPostings, fetchJobApplications, deleteJobPosting, setFilters, setActiveTab } from './_redux';
 
@@ -23,6 +24,8 @@ export default function JobManagementPage() {
   const [applicantSearch, setApplicantSearch] = useState('');
   const [applicantJobFilter, setApplicantJobFilter] = useState('');
   const [applicantStatusFilter, setApplicantStatusFilter] = useState('');
+  const [viewingApplication, setViewingApplication] = useState(null);
+  const [isAppViewModalOpen, setIsAppViewModalOpen] = useState(false);
 
   useEffect(() => {
     const params = {};
@@ -53,7 +56,7 @@ export default function JobManagementPage() {
 
   // Status counts for applicant tab cards
   const statusCounts = useMemo(() => {
-    const counts = { all: applications.length, pending: 0, reviewing: 0, shortlisted: 0, interview: 0, rejected: 0, accepted: 0 };
+    const counts = { all: applications.length, pending: 0, reviewing: 0, interview: 0, shortlisted: 0, final_interview: 0, job_offer: 0, accepted: 0, hired: 0, rejected: 0 };
     applications.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
     return counts;
   }, [applications]);
@@ -240,16 +243,39 @@ export default function JobManagementPage() {
               <p className="mt-2 text-sm text-gray-700">Review and manage job applications</p>
             </div>
 
-            {/* Status Summary Cards */}
-            <div className="grid grid-cols-7 gap-3 mb-6">
+            <div className="grid grid-cols-5 gap-3 mb-3">
               {[
                 { key: '', label: 'All', count: statusCounts.all },
                 { key: 'pending', label: 'New', count: statusCounts.pending },
                 { key: 'reviewing', label: 'Reviewing', count: statusCounts.reviewing },
-                { key: 'shortlisted', label: 'Shortlisted', count: statusCounts.shortlisted },
-                { key: 'interview', label: 'Interview', count: statusCounts.interview },
+                { key: 'interview', label: 'Initial Interview', count: statusCounts.interview },
+                { key: 'shortlisted', label: 'Interview Passed', count: statusCounts.shortlisted },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => setApplicantStatusFilter(item.key)}
+                  className={`rounded-lg border p-3 text-center transition-colors ${
+                    applicantStatusFilter === item.key
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <p className={`text-xs ${applicantStatusFilter === item.key ? 'text-indigo-600' : 'text-gray-500'}`}>
+                    {item.label}
+                  </p>
+                  <p className={`text-xl font-bold mt-1 ${applicantStatusFilter === item.key ? 'text-indigo-600' : 'text-gray-900'}`}>
+                    {item.count}
+                  </p>
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-5 gap-3 mb-6">
+              {[
+                { key: 'final_interview', label: 'Final Interview', count: statusCounts.final_interview },
+                { key: 'job_offer', label: 'Job Offer', count: statusCounts.job_offer },
+                { key: 'accepted', label: 'Contract Signing', count: statusCounts.accepted },
+                { key: 'hired', label: 'Hired', count: statusCounts.hired },
                 { key: 'rejected', label: 'Rejected', count: statusCounts.rejected },
-                { key: 'accepted', label: 'Hired', count: statusCounts.accepted },
               ].map((item) => (
                 <button
                   key={item.label}
@@ -300,10 +326,13 @@ export default function JobManagementPage() {
                 <option value="">All Status</option>
                 <option value="pending">New</option>
                 <option value="reviewing">Reviewing</option>
-                <option value="shortlisted">Shortlisted</option>
-                <option value="interview">Interview</option>
+                <option value="interview">Initial Interview</option>
+                <option value="shortlisted">Interview Passed</option>
+                <option value="final_interview">Final Interview</option>
+                <option value="job_offer">Job Offer</option>
+                <option value="accepted">Contract Signing</option>
+                <option value="hired">Hired</option>
                 <option value="rejected">Rejected</option>
-                <option value="accepted">Hired</option>
               </select>
               <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                 <ArrowDownTrayIcon className="h-4 w-4" />
@@ -335,8 +364,8 @@ export default function JobManagementPage() {
                     key={app.id}
                     application={app}
                     onView={(application) => {
-                      setViewingApplications(application.job_posting);
-                      setIsApplicationsModalOpen(true);
+                      setViewingApplication(application);
+                      setIsAppViewModalOpen(true);
                     }}
                   />
                 ))}
@@ -374,6 +403,18 @@ export default function JobManagementPage() {
         isOpen={isApplicationsModalOpen}
         onClose={handleCloseApplications}
         job={viewingApplications}
+      />
+
+      <ApplicationViewModal
+        isOpen={isAppViewModalOpen}
+        onClose={() => { setIsAppViewModalOpen(false); setViewingApplication(null); }}
+        application={viewingApplication}
+        onStatusChange={() => {
+          const params = {};
+          if (applicantJobFilter) params.job_posting_id = applicantJobFilter;
+          if (applicantStatusFilter) params.status = applicantStatusFilter;
+          dispatch(fetchJobApplications(params));
+        }}
       />
     </AppLayout>
   );

@@ -4,10 +4,13 @@ import { format } from 'date-fns';
 const statusConfig = {
   pending: { label: 'New', bg: 'bg-gray-100 text-gray-700' },
   reviewing: { label: 'Reviewing', bg: 'bg-blue-100 text-blue-700' },
-  shortlisted: { label: 'Shortlisted', bg: 'bg-indigo-100 text-indigo-700' },
-  interview: { label: 'Interview', bg: 'bg-orange-100 text-orange-700' },
+  interview: { label: 'Initial Interview', bg: 'bg-orange-100 text-orange-700' },
+  shortlisted: { label: 'Interview Passed', bg: 'bg-indigo-100 text-indigo-700' },
+  final_interview: { label: 'Final Interview', bg: 'bg-purple-100 text-purple-700' },
+  job_offer: { label: 'Job Offer', bg: 'bg-emerald-100 text-emerald-700' },
+  accepted: { label: 'Contract Signing', bg: 'bg-teal-100 text-teal-700' },
+  hired: { label: 'Hired', bg: 'bg-green-100 text-green-700' },
   rejected: { label: 'Rejected', bg: 'bg-red-100 text-red-700' },
-  accepted: { label: 'Hired', bg: 'bg-green-100 text-green-700' },
 };
 
 export default function ApplicantCard({ application, onView }) {
