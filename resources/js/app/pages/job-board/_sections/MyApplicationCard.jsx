@@ -3,12 +3,15 @@ import { DocumentTextIcon } from '@heroicons/react/24/solid';
 import { format } from 'date-fns';
 
 const statusConfig = {
-  pending: { label: 'pending', bg: 'bg-gray-100 text-gray-700 border-gray-200' },
-  reviewing: { label: 'Reviewing', bg: 'bg-blue-100 text-blue-700 border-blue-200' },
-  shortlisted: { label: 'Shortlisted', bg: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
-  interview: { label: 'Interview', bg: 'bg-purple-100 text-purple-700 border-purple-200' },
-  rejected: { label: 'Rejected', bg: 'bg-red-100 text-red-700 border-red-200' },
-  accepted: { label: 'Accepted', bg: 'bg-green-100 text-green-700 border-green-200' },
+  pending: { label: 'Pending', bg: 'bg-gray-100 text-gray-700 border-gray-200' },
+  reviewing: { label: 'Under Review', bg: 'bg-blue-100 text-blue-700 border-blue-200' },
+  interview: { label: 'Initial Interview', bg: 'bg-orange-100 text-orange-700 border-orange-200' },
+  shortlisted: { label: 'Interview Passed', bg: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
+  final_interview: { label: 'Final Interview', bg: 'bg-purple-100 text-purple-700 border-purple-200' },
+  job_offer: { label: 'Job Offer', bg: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  accepted: { label: 'Contract Signing', bg: 'bg-teal-100 text-teal-700 border-teal-200' },
+  hired: { label: 'Hired', bg: 'bg-green-100 text-green-700 border-green-200' },
+  rejected: { label: 'Not Selected', bg: 'bg-red-100 text-red-700 border-red-200' },
 };
 
 export default function MyApplicationCard({ application, onView }) {
@@ -59,10 +62,10 @@ export default function MyApplicationCard({ application, onView }) {
               <CalendarDaysIcon className="h-4 w-4" />
               <span>Applied {formatDate(application.created_at)}</span>
             </div>
-            {application.reviewed_at && (
+            {application.updated_at && (
               <div className="flex items-center gap-1.5">
                 <ClockIcon className="h-4 w-4" />
-                <span>Updated {formatDate(application.reviewed_at)}</span>
+                <span>Updated {formatDate(application.updated_at)}</span>
               </div>
             )}
           </div>
