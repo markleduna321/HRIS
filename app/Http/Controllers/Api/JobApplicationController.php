@@ -140,7 +140,7 @@ class JobApplicationController extends Controller
                 'basic_salary' => 0,
             ]);
 
-            // Create UserInformation if it doesn't exist
+            // Create UserInformation if it doesn't exist, or update with missing fields
             $existingInfo = UserInformation::where('user_id', $jobApplication->user_id)->first();
             if (!$existingInfo) {
                 UserInformation::create([
@@ -152,7 +152,12 @@ class JobApplicationController extends Controller
                     'phone' => $jobApplication->phone,
                 ]);
             } else {
-                $existingInfo->update(['employee_id' => $employee->id]);
+                $updateData = ['employee_id' => $employee->id];
+                if (!$existingInfo->first_name) $updateData['first_name'] = $firstName;
+                if (!$existingInfo->last_name) $updateData['last_name'] = $lastName;
+                if (!$existingInfo->email) $updateData['email'] = $jobApplication->email;
+                if (!$existingInfo->phone) $updateData['phone'] = $jobApplication->phone;
+                $existingInfo->update($updateData);
             }
 
             // Update user role from applicant to employee
