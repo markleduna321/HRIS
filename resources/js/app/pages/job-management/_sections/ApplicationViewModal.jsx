@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Modal, Button, showSuccess } from '@/app/components';
-import { DocumentTextIcon, EyeIcon, ArrowRightIcon, CalendarIcon, XCircleIcon, CheckCircleIcon, ArrowPathIcon, HandThumbUpIcon, HandThumbDownIcon, DocumentCheckIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, EyeIcon, ArrowRightIcon, CalendarIcon, XCircleIcon, CheckCircleIcon, ArrowPathIcon, HandThumbUpIcon, HandThumbDownIcon, DocumentCheckIcon, PencilSquareIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import { updateJobApplication, fetchJobApplications } from '../_redux';
 import ScheduleInterviewModal from './ScheduleInterviewModal';
+import PreEmploymentDocumentsModal from './PreEmploymentDocumentsModal';
 
 const statusConfig = {
   pending: { label: 'New', bg: 'bg-gray-100 text-gray-700 border-gray-200' },
@@ -14,6 +15,7 @@ const statusConfig = {
   final_interview: { label: 'Final Interview', bg: 'bg-purple-100 text-purple-700 border-purple-200' },
   job_offer: { label: 'Job Offer', bg: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
   accepted: { label: 'Contract Signing', bg: 'bg-teal-100 text-teal-700 border-teal-200' },
+  pre_employment_documents: { label: 'Pre-Employment Docs', bg: 'bg-blue-100 text-blue-700 border-blue-200' },
   hired: { label: 'Hired', bg: 'bg-green-100 text-green-700 border-green-200' },
   rejected: { label: 'Rejected', bg: 'bg-red-100 text-red-700 border-red-200' },
 };
@@ -22,6 +24,7 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
   const dispatch = useDispatch();
   const [isNextStepOpen, setIsNextStepOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
   const [scheduleType, setScheduleType] = useState('initial');
   const [nextStepLoading, setNextStepLoading] = useState(false);
 
@@ -225,13 +228,41 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
       return [
         {
           key: 'contract-signed',
-          label: 'Contract Signed',
-          description: 'Applicant has signed the contract — employee record will be created',
+          label: 'Mark Contract Signed',
+          description: 'Move to pre-employment documents collection',
           icon: DocumentCheckIcon,
-          iconBg: 'bg-green-100 group-hover:bg-green-200',
-          iconColor: 'text-green-600',
-          hoverBorder: 'hover:border-green-500 hover:bg-green-50',
-          action: () => handleNextStepAction('hired', 'Applicant Hired!', `${name} has been hired. Employee record created automatically.`),
+          iconBg: 'bg-teal-100 group-hover:bg-teal-200',
+          iconColor: 'text-teal-600',
+          hoverBorder: 'hover:border-teal-500 hover:bg-teal-50',
+          action: () => handleNextStepAction('pre_employment_documents', 'Contract Signed', `${name} has signed the contract. Proceed to upload pre-employment documents.`),
+        },
+      ];
+    }
+
+    if (application.status === 'pre_employment_documents') {
+      const hasAllDocs = application.pre_employment_documents?.length >= 6; // At least 6 required docs
+      
+      return [
+        {
+          key: 'upload-docs',
+          label: 'Upload Pre-Employment Documents',
+          description: 'Upload NBI, Police Clearance, Medical Cert, etc.',
+          icon: CloudArrowUpIcon,
+          iconBg: 'bg-blue-100 group-hover:bg-blue-200',
+          iconColor: 'text-blue-600',
+          hoverBorder: 'hover:border-blue-500 hover:bg-blue-50',
+          action: () => { setIsNextStepOpen(false); setIsDocsModalOpen(true); },
+        },
+        {
+          key: 'mark-hired',
+          label: 'Mark as Hired',
+          description: hasAllDocs ? 'All documents uploaded — create employee record' : 'Upload all required documents first',
+          icon: CheckCircleIcon,
+          iconBg: hasAllDocs ? 'bg-green-100 group-hover:bg-green-200' : 'bg-gray-100',
+          iconColor: hasAllDocs ? 'text-green-600' : 'text-gray-400',
+          hoverBorder: hasAllDocs ? 'hover:border-green-500 hover:bg-green-50' : 'opacity-50 cursor-not-allowed',
+          action: hasAllDocs ? () => handleNextStepAction('hired', 'Applicant Hired!', `${name} has been hired. Employee record created automatically.`) : () => {},
+          disabled: !hasAllDocs,
         },
       ];
     }
@@ -239,7 +270,7 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
     return [];
   };
 
-  const nextStepOptions = getNextStepOptions();
+  const nextStepOptions = getNextStepOptions().filter(opt => !opt.disabled);
 
   return (
     <>
@@ -397,6 +428,16 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
       onSuccess={() => {
         onStatusChange?.();
         onClose();
+      }}
+    />
+
+    {/* Pre-Employment Documents Modal */}
+    <PreEmploymentDocumentsModal
+      isOpen={isDocsModalOpen}
+      onClose={() => setIsDocsModalOpen(false)}
+      application={application}
+      onSuccess={() => {
+        onStatusChange?.();
       }}
     />
     </>

@@ -94,7 +94,7 @@ class JobApplicationController extends Controller
     public function update(Request $request, JobApplication $jobApplication)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'sometimes|required|in:pending,reviewing,shortlisted,interview,final_interview,job_offer,accepted,contract_signing,hired,rejected',
+            'status' => 'sometimes|required|in:pending,reviewing,shortlisted,interview,final_interview,job_offer,accepted,pre_employment_documents,hired,rejected',
             'notes' => 'nullable|string',
         ]);
 

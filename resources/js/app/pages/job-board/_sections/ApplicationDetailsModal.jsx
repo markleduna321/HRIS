@@ -11,6 +11,7 @@ const progressSteps = [
   { key: 'final_interview', label: 'Final Interview', description: 'Final interview scheduled' },
   { key: 'job_offer', label: 'Job Offer', description: 'You have received a job offer' },
   { key: 'accepted', label: 'Contract Signing', description: 'Preparing contract' },
+  { key: 'pre_employment_documents', label: 'Pre-Employment Documents', description: 'Submitting required clearances' },
   { key: 'hired', label: 'Hired!', description: 'Welcome to the team!' },
 ];
 
@@ -22,7 +23,8 @@ const statusOrder = {
   final_interview: 4,
   job_offer: 5,
   accepted: 6,
-  hired: 7,
+  pre_employment_documents: 7,
+  hired: 8,
 };
 
 export default function ApplicationDetailsModal({ isOpen, onClose, application }) {

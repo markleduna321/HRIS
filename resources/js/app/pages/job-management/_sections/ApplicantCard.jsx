@@ -9,6 +9,7 @@ const statusConfig = {
   final_interview: { label: 'Final Interview', bg: 'bg-purple-100 text-purple-700' },
   job_offer: { label: 'Job Offer', bg: 'bg-emerald-100 text-emerald-700' },
   accepted: { label: 'Contract Signing', bg: 'bg-teal-100 text-teal-700' },
+  pre_employment_documents: { label: 'Pre-Employment Docs', bg: 'bg-blue-100 text-blue-700' },
   hired: { label: 'Hired', bg: 'bg-green-100 text-green-700' },
   rejected: { label: 'Rejected', bg: 'bg-red-100 text-red-700' },
 };

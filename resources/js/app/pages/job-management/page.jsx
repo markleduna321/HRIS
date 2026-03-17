@@ -56,7 +56,7 @@ export default function JobManagementPage() {
 
   // Status counts for applicant tab cards
   const statusCounts = useMemo(() => {
-    const counts = { all: applications.length, pending: 0, reviewing: 0, interview: 0, shortlisted: 0, final_interview: 0, job_offer: 0, accepted: 0, hired: 0, rejected: 0 };
+    const counts = { all: applications.length, pending: 0, reviewing: 0, interview: 0, shortlisted: 0, final_interview: 0, job_offer: 0, accepted: 0, pre_employment_documents: 0, hired: 0, rejected: 0 };
     applications.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
     return counts;
   }, [applications]);
@@ -269,11 +269,12 @@ export default function JobManagementPage() {
                 </button>
               ))}
             </div>
-            <div className="grid grid-cols-5 gap-3 mb-6">
+            <div className="grid grid-cols-6 gap-3 mb-6">
               {[
                 { key: 'final_interview', label: 'Final Interview', count: statusCounts.final_interview },
                 { key: 'job_offer', label: 'Job Offer', count: statusCounts.job_offer },
                 { key: 'accepted', label: 'Contract Signing', count: statusCounts.accepted },
+                { key: 'pre_employment_documents', label: 'Pre-Employment Docs', count: statusCounts.pre_employment_documents },
                 { key: 'hired', label: 'Hired', count: statusCounts.hired },
                 { key: 'rejected', label: 'Rejected', count: statusCounts.rejected },
               ].map((item) => (

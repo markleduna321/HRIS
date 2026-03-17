@@ -7,7 +7,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE job_applications MODIFY COLUMN status ENUM('pending','reviewing','interview','shortlisted','final_interview','job_offer','accepted','hired','rejected') DEFAULT 'pending'");
+        DB::statement("ALTER TABLE job_applications MODIFY COLUMN status ENUM('pending','reviewing','interview','shortlisted','final_interview','job_offer','accepted','pre_employment_documents','hired','rejected') DEFAULT 'pending'");
     }
 
     public function down(): void

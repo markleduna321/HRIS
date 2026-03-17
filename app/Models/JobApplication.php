@@ -47,4 +47,9 @@ class JobApplication extends Model
     {
         return $this->hasMany(Interview::class);
     }
+
+    public function preEmploymentDocuments(): HasMany
+    {
+        return $this->hasMany(JobApplicationDocument::class);
+    }
 }
