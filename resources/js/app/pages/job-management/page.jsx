@@ -1,30 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import { useDispatch, useSelector } from 'react-redux';
 import AppLayout from '../layout';
 import { Button, showDeleteConfirm, showSuccess } from '@/app/components';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, MagnifyingGlassIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import JobPostingModal from './_sections/JobPostingModal';
 import JobPostingCard from './_sections/JobPostingCard';
 import JobPostingViewModal from './_sections/JobPostingViewModal';
 import JobApplicationsModal from './_sections/JobApplicationsModal';
-import { fetchJobPostings, deleteJobPosting, setFilters, setActiveTab } from './_redux';
+import ApplicantCard from './_sections/ApplicantCard';
+import { fetchJobPostings, fetchJobApplications, deleteJobPosting, setFilters, setActiveTab } from './_redux';
 
 export default function JobManagementPage() {
   const dispatch = useDispatch();
-  const { jobPostings, loading, filters, activeTab } = useSelector((state) => state.jobManagementPage);
+  const { jobPostings, applications, loading, filters, activeTab } = useSelector((state) => state.jobManagementPage);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [viewingJob, setViewingJob] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingApplications, setViewingApplications] = useState(null);
   const [isApplicationsModalOpen, setIsApplicationsModalOpen] = useState(false);
+  const [applicantSearch, setApplicantSearch] = useState('');
+  const [applicantJobFilter, setApplicantJobFilter] = useState('');
+  const [applicantStatusFilter, setApplicantStatusFilter] = useState('');
 
   useEffect(() => {
     const params = {};
     if (filters.status) params.status = filters.status;
     dispatch(fetchJobPostings(params));
   }, [dispatch, filters.status]);
+
+  // Fetch all applications when on the applicants tab
+  useEffect(() => {
+    if (activeTab === 'applicants') {
+      const params = {};
+      if (applicantJobFilter) params.job_posting_id = applicantJobFilter;
+      if (applicantStatusFilter) params.status = applicantStatusFilter;
+      dispatch(fetchJobApplications(params));
+    }
+  }, [dispatch, activeTab, applicantJobFilter, applicantStatusFilter]);
+
+  // Client-side search filtering for applicants
+  const filteredApplications = useMemo(() => {
+    if (!applicantSearch) return applications;
+    const q = applicantSearch.toLowerCase();
+    return applications.filter(a =>
+      a.applicant_name?.toLowerCase().includes(q) ||
+      a.email?.toLowerCase().includes(q) ||
+      a.phone?.includes(q)
+    );
+  }, [applications, applicantSearch]);
+
+  // Status counts for applicant tab cards
+  const statusCounts = useMemo(() => {
+    const counts = { all: applications.length, pending: 0, reviewing: 0, shortlisted: 0, interview: 0, rejected: 0, accepted: 0 };
+    applications.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
+    return counts;
+  }, [applications]);
 
   const handleOpenModal = (job = null) => {
     setEditingJob(job);
@@ -61,6 +93,14 @@ export default function JobManagementPage() {
   const handleCloseApplications = () => {
     setIsApplicationsModalOpen(false);
     setViewingApplications(null);
+  };
+
+  const handleViewApplicantsTab = (job) => {
+    setIsViewModalOpen(false);
+    setViewingJob(null);
+    setApplicantJobFilter(String(job.id));
+    setApplicantStatusFilter('');
+    dispatch(setActiveTab('applicants'));
   };
 
   const handleDelete = (job) => {
@@ -194,9 +234,114 @@ export default function JobManagementPage() {
 
         {/* Applicants Tab */}
         {activeTab === 'applicants' && (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Applicants</h2>
-            <p className="text-gray-600">Applicants view coming soon...</p>
+          <div>
+            <div className="mb-6">
+              <h1 className="text-2xl font-semibold text-gray-900">Applicant Management</h1>
+              <p className="mt-2 text-sm text-gray-700">Review and manage job applications</p>
+            </div>
+
+            {/* Status Summary Cards */}
+            <div className="grid grid-cols-7 gap-3 mb-6">
+              {[
+                { key: '', label: 'All', count: statusCounts.all },
+                { key: 'pending', label: 'New', count: statusCounts.pending },
+                { key: 'reviewing', label: 'Reviewing', count: statusCounts.reviewing },
+                { key: 'shortlisted', label: 'Shortlisted', count: statusCounts.shortlisted },
+                { key: 'interview', label: 'Interview', count: statusCounts.interview },
+                { key: 'rejected', label: 'Rejected', count: statusCounts.rejected },
+                { key: 'accepted', label: 'Hired', count: statusCounts.accepted },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => setApplicantStatusFilter(item.key)}
+                  className={`rounded-lg border p-3 text-center transition-colors ${
+                    applicantStatusFilter === item.key
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <p className={`text-xs ${applicantStatusFilter === item.key ? 'text-indigo-600' : 'text-gray-500'}`}>
+                    {item.label}
+                  </p>
+                  <p className={`text-xl font-bold mt-1 ${applicantStatusFilter === item.key ? 'text-indigo-600' : 'text-gray-900'}`}>
+                    {item.count}
+                  </p>
+                </button>
+              ))}
+            </div>
+
+            {/* Search & Filters */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4 flex gap-4 mb-6">
+              <div className="flex-1 relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search applicants..."
+                  value={applicantSearch}
+                  onChange={(e) => setApplicantSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm"
+                />
+              </div>
+              <select
+                value={applicantJobFilter}
+                onChange={(e) => setApplicantJobFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white sm:text-sm"
+              >
+                <option value="">All Positions</option>
+                {jobPostings.map((jp) => (
+                  <option key={jp.id} value={jp.id}>{jp.title}</option>
+                ))}
+              </select>
+              <select
+                value={applicantStatusFilter}
+                onChange={(e) => setApplicantStatusFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white sm:text-sm"
+              >
+                <option value="">All Status</option>
+                <option value="pending">New</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="shortlisted">Shortlisted</option>
+                <option value="interview">Interview</option>
+                <option value="rejected">Rejected</option>
+                <option value="accepted">Hired</option>
+              </select>
+              <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <ArrowDownTrayIcon className="h-4 w-4" />
+                Export
+              </button>
+            </div>
+
+            {/* Applicant List */}
+            {loading && applications.length === 0 ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading applicants...</p>
+                </div>
+              </div>
+            ) : filteredApplications.length === 0 ? (
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No applicants found</h3>
+                <p className="text-gray-600">
+                  {applicantSearch || applicantJobFilter || applicantStatusFilter
+                    ? 'Try adjusting your search or filters'
+                    : 'No applications have been submitted yet.'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredApplications.map((app) => (
+                  <ApplicantCard
+                    key={app.id}
+                    application={app}
+                    onView={(application) => {
+                      setViewingApplications(application.job_posting);
+                      setIsApplicationsModalOpen(true);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -222,6 +367,7 @@ export default function JobManagementPage() {
         job={viewingJob}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onViewApplicants={handleViewApplicantsTab}
       />
 
       <JobApplicationsModal
