@@ -410,11 +410,21 @@ export default function JobManagementPage() {
         isOpen={isAppViewModalOpen}
         onClose={() => { setIsAppViewModalOpen(false); setViewingApplication(null); }}
         application={viewingApplication}
-        onStatusChange={() => {
+        onStatusChange={async () => {
           const params = {};
           if (applicantJobFilter) params.job_posting_id = applicantJobFilter;
           if (applicantStatusFilter) params.status = applicantStatusFilter;
-          dispatch(fetchJobApplications(params));
+          
+          // Refetch applications and update the viewing application with fresh data
+          const result = await dispatch(fetchJobApplications(params)).unwrap();
+          
+          // Find the updated application in the result
+          if (viewingApplication && result) {
+            const updatedApp = result.find(app => app.id === viewingApplication.id);
+            if (updatedApp) {
+              setViewingApplication(updatedApp);
+            }
+          }
         }}
       />
     </AppLayout>

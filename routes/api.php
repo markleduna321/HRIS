@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\JobApplicationController;
 use App\Http\Controllers\Api\JobRequisitionController;
 use App\Http\Controllers\Api\InterviewController;
 use App\Http\Controllers\Api\JobApplicationDocumentController;
+use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\WorkExperienceController;
 use App\Http\Controllers\Api\SkillController;
 
@@ -48,6 +49,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // Job Postings API
     Route::apiResource('job-postings', JobPostingController::class);
+    
+    // Document Types API (for 201 Files & Pre-Employment)
+    Route::post('document-types/reorder', [DocumentTypeController::class, 'reorder']);
+    Route::apiResource('document-types', DocumentTypeController::class);
     
     // Job Requisitions API
     Route::get('job-requisitions/statistics', [JobRequisitionController::class, 'statistics']);    Route::get('job-requisitions/unfilled', [JobRequisitionController::class, 'getUnfilledRequisitions']);    Route::get('job-requisitions/existing-positions', [JobRequisitionController::class, 'getExistingPositions']);

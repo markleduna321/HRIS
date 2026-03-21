@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\JobApplicationDocument;
 use App\Models\JobApplication;
+use App\Models\DocumentType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -51,9 +52,16 @@ class JobApplicationDocumentController extends Controller
 
     public function store(Request $request)
     {
+        // Get all valid document type keys (active and inactive, since we store the key)
+        $validDocumentKeys = DocumentType::pluck('key')->toArray();
+        
         $validator = Validator::make($request->all(), [
             'job_application_id' => 'required|exists:job_applications,id',
-            'document_type' => 'required|in:nbi_clearance,police_clearance,barangay_clearance,medical_certificate,birth_certificate,valid_id,sss_form,philhealth_form,pagibig_form,tin_id,certificate_of_employment,diploma,transcript_of_records,other',
+            'document_type' => ['required', 'string', function ($attribute, $value, $fail) use ($validDocumentKeys) {
+                if (!in_array($value, $validDocumentKeys)) {
+                    $fail('The selected document type is invalid.');
+                }
+            }],
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'notes' => 'nullable|string',
         ]);

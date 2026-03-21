@@ -17,6 +17,7 @@ class JobPosting extends Model
         'description',
         'requirements',
         'responsibilities',
+        'required_documents',
         'salary_min',
         'salary_max',
         'status',
@@ -30,6 +31,7 @@ class JobPosting extends Model
         'salary_min' => 'decimal:2',
         'salary_max' => 'decimal:2',
         'closing_date' => 'date',
+        'required_documents' => 'array',
     ];
 
     public function jobRequisition(): BelongsTo

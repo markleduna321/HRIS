@@ -5,6 +5,7 @@ import { fetchEmployees } from '../employees/_redux';
 import EmployeeDocumentsTableSection from './_sections/EmployeeDocumentsTableSection';
 import EmployeeDocumentsModalSection from './_sections/EmployeeDocumentsModalSection';
 import DocumentPreviewModal from './_sections/DocumentPreviewModal';
+import DocumentTypesManagementModal from './_sections/DocumentTypesManagementModal';
 import AppLayout from '../layout';
 
 export default function EmployeeDocumentsPage() {
@@ -18,6 +19,7 @@ export default function EmployeeDocumentsPage() {
   const [filterDocumentType, setFilterDocumentType] = useState(null);
   const [previewDocument, setPreviewDocument] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isDocTypesModalOpen, setIsDocTypesModalOpen] = useState(false);
 
   useEffect(() => {
     // Fetch all documents and employees on mount
@@ -64,6 +66,7 @@ export default function EmployeeDocumentsPage() {
         loading={loading}
         onOpenModal={handleOpenModal}
         onPreview={handlePreview}
+        onManageDocTypes={() => setIsDocTypesModalOpen(true)}
         filterEmployeeId={filterEmployeeId}
         setFilterEmployeeId={setFilterEmployeeId}
         filterDocumentType={filterDocumentType}
@@ -81,6 +84,11 @@ export default function EmployeeDocumentsPage() {
         isOpen={isPreviewOpen}
         onClose={handleClosePreview}
         document={previewDocument}
+      />
+
+      <DocumentTypesManagementModal
+        isOpen={isDocTypesModalOpen}
+        onClose={() => setIsDocTypesModalOpen(false)}
       />
     </div>
     </AppLayout>

@@ -19,6 +19,7 @@ class JobApplication extends Model
         'cover_letter_path',
         'cover_letter_text',
         'status',
+        'required_documents',
         'notes',
         'reviewed_at',
         'reviewed_by',
@@ -26,6 +27,7 @@ class JobApplication extends Model
 
     protected $casts = [
         'reviewed_at' => 'datetime',
+        'required_documents' => 'array',
     ];
 
     public function jobPosting(): BelongsTo

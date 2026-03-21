@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { updateJobApplication, fetchJobApplications } from '../_redux';
 import ScheduleInterviewModal from './ScheduleInterviewModal';
 import PreEmploymentDocumentsModal from './PreEmploymentDocumentsModal';
+import SelectRequiredDocumentsModal from './SelectRequiredDocumentsModal';
 
 const statusConfig = {
   pending: { label: 'New', bg: 'bg-gray-100 text-gray-700 border-gray-200' },
@@ -25,6 +26,8 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
   const [isNextStepOpen, setIsNextStepOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
+  const [isSelectDocsModalOpen, setIsSelectDocsModalOpen] = useState(false);
+  const [isScheduleFinalPromptOpen, setIsScheduleFinalPromptOpen] = useState(false);
   const [scheduleType, setScheduleType] = useState('initial');
   const [nextStepLoading, setNextStepLoading] = useState(false);
 
@@ -67,6 +70,73 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
       await dispatch(updateJobApplication({ id: application.id, data: { status: newStatus } })).unwrap();
       showSuccess({ title: successTitle, content: successContent });
       setIsNextStepOpen(false);
+      onStatusChange?.();
+      onClose();
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    } finally {
+      setNextStepLoading(false);
+    }
+  };
+
+  const handleProceedToPreEmploymentDocs = () => {
+    setIsNextStepOpen(false);
+    setIsSelectDocsModalOpen(true);
+  };
+
+  const handlePassInitialInterview = async () => {
+    setNextStepLoading(true);
+    try {
+      await dispatch(updateJobApplication({ 
+        id: application.id, 
+        data: { status: 'shortlisted' } 
+      })).unwrap();
+      
+      showSuccess({
+        title: 'Interview Passed',
+        content: `${application.applicant_name} has passed the initial interview.`
+      });
+      
+      setIsNextStepOpen(false);
+      onStatusChange?.();
+      
+      // Show prompt to schedule final interview
+      setIsScheduleFinalPromptOpen(true);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    } finally {
+      setNextStepLoading(false);
+    }
+  };
+
+  const handleScheduleFinalNow = () => {
+    setIsScheduleFinalPromptOpen(false);
+    setScheduleType('final');
+    setIsScheduleOpen(true);
+  };
+
+  const handleSkipScheduleFinal = () => {
+    setIsScheduleFinalPromptOpen(false);
+    onClose();
+  };
+
+  const handleConfirmRequiredDocuments = async (selectedDocuments) => {
+    setNextStepLoading(true);
+    try {
+      await dispatch(updateJobApplication({
+        id: application.id,
+        data: {
+          status: 'pre_employment_documents',
+          required_documents: selectedDocuments
+        }
+      })).unwrap();
+      
+      showSuccess({
+        title: 'Contract Signed',
+        content: `${application.applicant_name} has signed the contract. Pre-employment documents configured (${selectedDocuments.length} documents).`
+      });
+      
+      setIsSelectDocsModalOpen(false);
       onStatusChange?.();
       onClose();
     } catch (error) {
@@ -124,7 +194,7 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
           iconBg: 'bg-green-100 group-hover:bg-green-200',
           iconColor: 'text-green-600',
           hoverBorder: 'hover:border-green-500 hover:bg-green-50',
-          action: () => handleNextStepAction('shortlisted', 'Interview Passed', `${name} has passed the initial interview.`),
+          action: handlePassInitialInterview,
         },
         {
           key: 'fail',
@@ -234,22 +304,32 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
           iconBg: 'bg-teal-100 group-hover:bg-teal-200',
           iconColor: 'text-teal-600',
           hoverBorder: 'hover:border-teal-500 hover:bg-teal-50',
-          action: () => handleNextStepAction('pre_employment_documents', 'Contract Signed', `${name} has signed the contract. Proceed to upload pre-employment documents.`),
+          action: handleProceedToPreEmploymentDocs,
         },
       ];
     }
 
     if (application.status === 'pre_employment_documents') {
-      // Check if all 6 required documents are approved (not just uploaded)
-      const requiredDocTypes = ['nbi_clearance', 'police_clearance', 'barangay_clearance', 'medical_certificate', 'birth_certificate', 'valid_id'];
+      // Get the list of required documents (those marked as required by HR)
+      const requiredDocs = application.required_documents?.filter(doc => doc.is_required) || [];
       const approvedDocs = application.pre_employment_documents?.filter(doc => doc.status === 'approved') || [];
-      const hasAllDocs = requiredDocTypes.every(type => approvedDocs.some(doc => doc.document_type === type));
+      
+      // Check if all required documents are approved
+      const hasAllDocs = requiredDocs.length > 0 && requiredDocs.every(reqDoc => 
+        approvedDocs.some(appDoc => appDoc.document_type === reqDoc.document_type_key)
+      );
+      
+      // Count stats for display
+      const totalRequired = requiredDocs.length;
+      const approvedRequired = requiredDocs.filter(reqDoc => 
+        approvedDocs.some(appDoc => appDoc.document_type === reqDoc.document_type_key)
+      ).length;
       
       return [
         {
           key: 'upload-docs',
           label: 'Upload Pre-Employment Documents',
-          description: 'Upload NBI, Police Clearance, Medical Cert, etc.',
+          description: `${approvedRequired}/${totalRequired} required documents approved`,
           icon: CloudArrowUpIcon,
           iconBg: 'bg-blue-100 group-hover:bg-blue-200',
           iconColor: 'text-blue-600',
@@ -259,7 +339,7 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
         {
           key: 'mark-hired',
           label: 'Mark as Hired',
-          description: hasAllDocs ? 'All required documents approved — create employee record' : 'All required documents must be approved first',
+          description: hasAllDocs ? 'All required documents approved — create employee record' : `${totalRequired - approvedRequired} required document(s) still need approval`,
           icon: CheckCircleIcon,
           iconBg: hasAllDocs ? 'bg-green-100 group-hover:bg-green-200' : 'bg-gray-100',
           iconColor: hasAllDocs ? 'text-green-600' : 'text-gray-400',
@@ -443,6 +523,57 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
         onStatusChange?.();
       }}
     />
+
+    {/* Select Required Documents Modal */}
+    <SelectRequiredDocumentsModal
+      isOpen={isSelectDocsModalOpen}
+      onClose={() => setIsSelectDocsModalOpen(false)}
+      onConfirm={handleConfirmRequiredDocuments}
+      application={application}
+    />
+
+    {/* Schedule Final Interview Prompt Modal */}
+    <Modal
+      open={isScheduleFinalPromptOpen}
+      onClose={handleSkipScheduleFinal}
+      size="sm"
+      title="Schedule Final Interview?"
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-gray-600">
+          <span className="font-semibold">{application.applicant_name}</span> has passed the initial interview. 
+          Would you like to schedule the final interview now?
+        </p>
+
+        <div className="space-y-3 pt-2">
+          <button
+            onClick={handleScheduleFinalNow}
+            className="w-full flex items-center gap-4 p-4 border border-purple-200 bg-purple-50 rounded-lg hover:border-purple-500 hover:bg-purple-100 transition-colors text-left group"
+          >
+            <div className="w-10 h-10 rounded-full bg-purple-100 group-hover:bg-purple-200 flex items-center justify-center flex-shrink-0 transition-colors">
+              <CalendarIcon className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Schedule Final Interview Now</p>
+              <p className="text-xs text-gray-500 mt-0.5">Set date and time for the final interview</p>
+            </div>
+          </button>
+
+          <button
+            onClick={handleSkipScheduleFinal}
+            className="w-full flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-colors text-left group"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center flex-shrink-0 transition-colors">
+              <ArrowRightIcon className="h-5 w-5 text-gray-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Skip for Now</p>
+              <p className="text-xs text-gray-500 mt-0.5">Schedule the final interview later</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </Modal>
     </>
   );
 }

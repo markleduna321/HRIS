@@ -2,23 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, showSuccess, showError } from '@/app/components';
 import { DocumentTextIcon, TrashIcon, CloudArrowUpIcon, CheckCircleIcon, XCircleIcon, ClockIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { uploadJobApplicationDocument, fetchJobApplicationDocuments, deleteJobApplicationDocument, approveJobApplicationDocument, rejectJobApplicationDocument } from '@/app/services/job-application-document-service';
+import { fetchDocumentTypes } from '@/app/services/document-type-service';
 import { usePage } from '@inertiajs/react';
-
-const REQUIRED_DOCUMENTS = [
-  { key: 'nbi_clearance', label: 'NBI Clearance', required: true },
-  { key: 'police_clearance', label: 'Police Clearance', required: true },
-  { key: 'barangay_clearance', label: 'Barangay Clearance', required: true },
-  { key: 'medical_certificate', label: 'Medical Certificate', required: true },
-  { key: 'birth_certificate', label: 'Birth Certificate', required: true },
-  { key: 'valid_id', label: 'Valid ID (2 copies)', required: true },
-  { key: 'sss_form', label: 'SSS E-1 Form', required: false },
-  { key: 'philhealth_form', label: 'PhilHealth MDR Form', required: false },
-  { key: 'pagibig_form', label: 'Pag-IBIG MDF', required: false },
-  { key: 'tin_id', label: 'TIN ID / 1902 Form', required: false },
-];
 
 export default function PreEmploymentDocumentsModal({ isOpen, onClose, application, onSuccess }) {
   const [documents, setDocuments] = useState([]);
+  const [requiredDocuments, setRequiredDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState({});
   const [rejectingDoc, setRejectingDoc] = useState(null);
@@ -37,11 +26,63 @@ export default function PreEmploymentDocumentsModal({ isOpen, onClose, applicati
     return user.roles.some(role => hrRoles.includes(role));
   }, [user]);
 
+  // Load required documents configuration
   useEffect(() => {
     if (isOpen && application) {
       fetchDocuments();
+      loadRequiredDocuments();
     }
   }, [isOpen, application]);
+
+  const loadRequiredDocuments = async () => {
+    try {
+      // Priority 1: Check if this application has specific required documents (set by HR during contract signing)
+      if (application.required_documents && application.required_documents.length > 0) {
+        // required_documents is an array of {document_type_id, document_type_key, document_type_name, is_required}
+        const requiredDocTypes = application.required_documents.map(reqDoc => ({
+          key: reqDoc.document_type_key,
+          label: reqDoc.document_type_name,
+          description: '', // Not stored in the selection, but not critical for display
+          required: reqDoc.is_required
+        }));
+        
+        setRequiredDocuments(requiredDocTypes);
+      }
+      // Priority 2: Check if job posting has required documents template
+      else if (application.job_posting?.required_documents && application.job_posting.required_documents.length > 0) {
+        // required_documents is an array of {document_type_id, is_required}
+        const allDocTypes = await fetchDocumentTypes({ active_only: true });
+        
+        const requiredDocTypes = application.job_posting.required_documents.map(reqDoc => {
+          const docType = allDocTypes.find(dt => dt.id === reqDoc.document_type_id);
+          return docType ? {
+            key: docType.key,
+            label: docType.name,
+            description: docType.description,
+            required: reqDoc.is_required
+          } : null;
+        }).filter(Boolean);
+        
+        setRequiredDocuments(requiredDocTypes);
+      } 
+      // Priority 3: Fallback to all active document types with first 6 as required
+      else {
+        const allDocTypes = await fetchDocumentTypes({ active_only: true });
+        const docTypesList = allDocTypes.map((docType, index) => ({
+          key: docType.key,
+          label: docType.name,
+          description: docType.description,
+          required: index < 6 // First 6 are required by default
+        }));
+        
+        setRequiredDocuments(docTypesList);
+      }
+    } catch (error) {
+      console.error('Failed to load required documents:', error);
+      // Fallback to empty array
+      setRequiredDocuments([]);
+    }
+  };
 
   const fetchDocuments = async () => {
     try {
@@ -135,7 +176,7 @@ export default function PreEmploymentDocumentsModal({ isOpen, onClose, applicati
     return documents.find(d => d.document_type === docType);
   };
 
-  const allRequiredApproved = REQUIRED_DOCUMENTS
+  const allRequiredApproved = requiredDocuments
     .filter(d => d.required)
     .every(d => {
       const doc = getDocumentForType(d.key);
@@ -174,7 +215,13 @@ export default function PreEmploymentDocumentsModal({ isOpen, onClose, applicati
 
         {/* Document Checklist */}
         <div className="space-y-3">
-          {REQUIRED_DOCUMENTS.map((docReq) => {
+          {requiredDocuments.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <DocumentTextIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+              <p>Loading required documents...</p>
+            </div>
+          ) : (
+            requiredDocuments.map((docReq) => {
             const uploadedDoc = getDocumentForType(docReq.key);
             const isUploading = uploading[docReq.key];
             const canReupload = uploadedDoc && (uploadedDoc.status === 'rejected' || !isHR);
@@ -326,7 +373,8 @@ export default function PreEmploymentDocumentsModal({ isOpen, onClose, applicati
                 </div>
               </div>
             );
-          })}
+          })
+          )}
         </div>
 
         {/* Footer Actions */}

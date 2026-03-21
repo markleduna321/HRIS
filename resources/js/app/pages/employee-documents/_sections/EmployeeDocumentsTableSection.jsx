@@ -7,7 +7,8 @@ import {
   PencilIcon, 
   TrashIcon,
   FunnelIcon,
-  EyeIcon
+  EyeIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import {
   deleteEmployeeDocument,
@@ -21,6 +22,7 @@ export default function EmployeeDocumentsTableSection({
   loading,
   onOpenModal,
   onPreview,
+  onManageDocTypes,
   filterEmployeeId,
   setFilterEmployeeId,
   filterDocumentType,
@@ -92,7 +94,14 @@ export default function EmployeeDocumentsTableSection({
             Manage employee documents and personnel records.
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <div className="mt-4 sm:mt-0 sm:ml-16 flex gap-3">
+          <Button 
+            onClick={onManageDocTypes} 
+            variant="secondary"
+            icon={<Cog6ToothIcon className="h-5 w-5" />}
+          >
+            Manage Document Types
+          </Button>
           <Button onClick={() => onOpenModal()} icon={<PlusIcon className="h-5 w-5" />}>
             Upload Document
           </Button>
