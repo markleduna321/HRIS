@@ -240,7 +240,10 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
     }
 
     if (application.status === 'pre_employment_documents') {
-      const hasAllDocs = application.pre_employment_documents?.length >= 6; // At least 6 required docs
+      // Check if all 6 required documents are approved (not just uploaded)
+      const requiredDocTypes = ['nbi_clearance', 'police_clearance', 'barangay_clearance', 'medical_certificate', 'birth_certificate', 'valid_id'];
+      const approvedDocs = application.pre_employment_documents?.filter(doc => doc.status === 'approved') || [];
+      const hasAllDocs = requiredDocTypes.every(type => approvedDocs.some(doc => doc.document_type === type));
       
       return [
         {
@@ -256,7 +259,7 @@ export default function ApplicationViewModal({ isOpen, onClose, application, onS
         {
           key: 'mark-hired',
           label: 'Mark as Hired',
-          description: hasAllDocs ? 'All documents uploaded — create employee record' : 'Upload all required documents first',
+          description: hasAllDocs ? 'All required documents approved — create employee record' : 'All required documents must be approved first',
           icon: CheckCircleIcon,
           iconBg: hasAllDocs ? 'bg-green-100 group-hover:bg-green-200' : 'bg-gray-100',
           iconColor: hasAllDocs ? 'text-green-600' : 'text-gray-400',

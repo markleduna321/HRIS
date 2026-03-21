@@ -18,3 +18,15 @@ export const deleteJobApplicationDocument = async (id) => {
   const response = await axios.delete(`${API_URL}/${id}`);
   return response.data;
 };
+
+export const approveJobApplicationDocument = async (id) => {
+  const response = await axios.post(`${API_URL}/${id}/approve`);
+  return response.data;
+};
+
+export const rejectJobApplicationDocument = async (id, rejectionReason) => {
+  const response = await axios.post(`${API_URL}/${id}/reject`, {
+    rejection_reason: rejectionReason,
+  });
+  return response.data;
+};

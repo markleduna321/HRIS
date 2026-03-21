@@ -65,6 +65,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('interviews', InterviewController::class);
     
     // Job Application Documents API (Pre-Employment)
+    Route::post('job-application-documents/{jobApplicationDocument}/approve', [JobApplicationDocumentController::class, 'approve']);
+    Route::post('job-application-documents/{jobApplicationDocument}/reject', [JobApplicationDocumentController::class, 'reject']);
     Route::apiResource('job-application-documents', JobApplicationDocumentController::class)->except(['update', 'show']);
     
     // Profile API

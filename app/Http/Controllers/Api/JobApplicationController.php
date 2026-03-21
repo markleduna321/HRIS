@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Models\EmployeeDocument;
 use App\Models\JobApplication;
+use App\Models\JobApplicationDocument;
 use App\Models\JobPosting;
 use App\Models\UserInformation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,7 +18,7 @@ class JobApplicationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = JobApplication::with(['jobPosting.department', 'user', 'interviews.scheduledBy']);
+        $query = JobApplication::with(['jobPosting.department', 'user', 'interviews.scheduledBy', 'preEmploymentDocuments']);
 
         // If 'mine' param is set, scope to current user
         if ($request->boolean('mine')) {
@@ -88,7 +91,7 @@ class JobApplicationController extends Controller
 
     public function show(JobApplication $jobApplication)
     {
-        return response()->json($jobApplication->load(['jobPosting.department', 'user', 'reviewedBy']));
+        return response()->json($jobApplication->load(['jobPosting.department', 'user', 'reviewedBy', 'interviews.scheduledBy', 'preEmploymentDocuments']));
     }
 
     public function update(Request $request, JobApplication $jobApplication)
@@ -166,9 +169,12 @@ class JobApplicationController extends Controller
                 $user->removeRole('applicant');
                 $user->assignRole('employee');
             }
+
+            // Transfer job application documents to employee 201 files
+            $this->transferDocumentsToEmployee($jobApplication, $employee, $request->user());
         }
 
-        return response()->json($jobApplication->load(['jobPosting', 'reviewedBy']));
+        return response()->json($jobApplication->load(['jobPosting', 'reviewedBy', 'interviews.scheduledBy', 'preEmploymentDocuments']));
     }
 
     public function destroy(JobApplication $jobApplication)
@@ -184,6 +190,79 @@ class JobApplicationController extends Controller
         $jobApplication->delete();
 
         return response()->json(['message' => 'Application deleted successfully']);
+    }
+
+    /**
+     * Transfer job application documents to employee 201 files
+     */
+    private function transferDocumentsToEmployee(JobApplication $jobApplication, Employee $employee, $uploadedBy)
+    {
+        try {
+            // 1. Copy Resume to Employee Documents
+            if ($jobApplication->resume_path && Storage::disk('public')->exists($jobApplication->resume_path)) {
+                $resumePath = $jobApplication->resume_path;
+                $fileInfo = pathinfo($resumePath);
+                $fileSize = Storage::disk('public')->size($resumePath);
+
+                EmployeeDocument::create([
+                    'employee_id' => $employee->id,
+                    'document_type' => 'Resume',
+                    'document_name' => 'Resume - ' . $jobApplication->applicant_name,
+                    'file_path' => $resumePath,
+                    'file_type' => strtoupper($fileInfo['extension'] ?? 'pdf'),
+                    'file_size' => $fileSize,
+                    'description' => 'Resume from job application',
+                    'uploaded_by' => $uploadedBy->id,
+                ]);
+
+                Log::info("Resume transferred to employee documents for employee {$employee->id}");
+            }
+
+            // 2. Copy all approved pre-employment documents
+            $preEmploymentDocs = $jobApplication->preEmploymentDocuments()
+                ->where('status', 'approved')
+                ->get();
+
+            // Map job application document types to employee document types
+            $docTypeMap = [
+                'nbi_clearance' => 'NBI Clearance',
+                'police_clearance' => 'Police Clearance',
+                'barangay_clearance' => 'Barangay Clearance',
+                'medical_certificate' => 'Medical Certificate',
+                'birth_certificate' => 'Birth Certificate',
+                'valid_id' => 'Valid ID',
+                'sss_form' => 'SSS Form',
+                'philhealth_form' => 'PhilHealth Form',
+                'pagibig_form' => 'Pag-IBIG Form',
+                'tin_id' => 'TIN ID',
+            ];
+
+            foreach ($preEmploymentDocs as $doc) {
+                if (Storage::disk('public')->exists($doc->file_path)) {
+                    $fileInfo = pathinfo($doc->file_path);
+                    $fileSize = Storage::disk('public')->size($doc->file_path);
+                    $documentType = $docTypeMap[$doc->document_type] ?? ucwords(str_replace('_', ' ', $doc->document_type));
+
+                    EmployeeDocument::create([
+                        'employee_id' => $employee->id,
+                        'document_type' => $documentType,
+                        'document_name' => $documentType . ' - ' . $jobApplication->applicant_name,
+                        'file_path' => $doc->file_path,
+                        'file_type' => strtoupper($fileInfo['extension'] ?? 'pdf'),
+                        'file_size' => $fileSize,
+                        'description' => 'Pre-employment document from job application',
+                        'uploaded_by' => $uploadedBy->id,
+                    ]);
+
+                    Log::info("Pre-employment document {$documentType} transferred to employee {$employee->id}");
+                }
+            }
+
+            Log::info("Successfully transferred all documents to employee {$employee->id} for job application {$jobApplication->id}");
+        } catch (\Exception $e) {
+            Log::error("Failed to transfer documents to employee: " . $e->getMessage());
+            // Don't fail the hiring process if document transfer fails
+        }
     }
 }
 

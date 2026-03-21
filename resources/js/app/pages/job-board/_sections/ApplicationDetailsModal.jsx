@@ -1,7 +1,9 @@
 import { Modal } from '@/app/components';
 import { format } from 'date-fns';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
-import { CalendarIcon, ClockIcon, MapPinIcon, VideoCameraIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon, ClockIcon, MapPinIcon, VideoCameraIcon, LinkIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline';
+import PreEmploymentDocumentsModal from '@/app/pages/job-management/_sections/PreEmploymentDocumentsModal';
+import { useState } from 'react';
 
 const progressSteps = [
   { key: 'pending', label: 'Application Submitted', description: 'Your application has been received' },
@@ -28,6 +30,8 @@ const statusOrder = {
 };
 
 export default function ApplicationDetailsModal({ isOpen, onClose, application }) {
+  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
+  
   if (!application) return null;
 
   const job = application.job_posting;
@@ -259,6 +263,31 @@ export default function ApplicationDetailsModal({ isOpen, onClose, application }
         </div>
       )}
 
+      {/* Pre-Employment Documents Section */}
+      {application.status === 'pre_employment_documents' && (
+        <div className="border-t pt-4 mt-4">
+          <h4 className="text-sm font-bold text-gray-900 mb-3">Pre-Employment Documents</h4>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <CloudArrowUpIcon className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-900">Document Submission Required</p>
+                <p className="text-xs text-blue-700 mt-1">
+                  Please upload the required pre-employment documents. HR will review them before finalizing your employment.
+                </p>
+                <button
+                  onClick={() => setIsDocsModalOpen(true)}
+                  className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <CloudArrowUpIcon className="h-4 w-4" />
+                  Upload Documents
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Notes */}
       {application.notes && !isRejected && (
         <div className="border-t pt-4 mt-4">
@@ -266,6 +295,16 @@ export default function ApplicationDetailsModal({ isOpen, onClose, application }
           <p className="text-sm text-gray-600">{application.notes}</p>
         </div>
       )}
+
+      {/* Pre-Employment Documents Modal */}
+      <PreEmploymentDocumentsModal
+        isOpen={isDocsModalOpen}
+        onClose={() => setIsDocsModalOpen(false)}
+        application={application}
+        onSuccess={() => {
+          // Refresh application data
+        }}
+      />
     </Modal>
   );
 }

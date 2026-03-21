@@ -14,6 +14,14 @@ class JobApplicationDocument extends Model
         'original_filename',
         'notes',
         'uploaded_by',
+        'status',
+        'reviewed_by',
+        'reviewed_at',
+        'rejection_reason',
+    ];
+
+    protected $casts = [
+        'reviewed_at' => 'datetime',
     ];
 
     public function jobApplication(): BelongsTo
@@ -24,5 +32,10 @@ class JobApplicationDocument extends Model
     public function uploadedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 }
