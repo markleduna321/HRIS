@@ -79,15 +79,15 @@ export default function ScheduleInterviewModal({ isOpen, onClose, application, o
       title=""
       footer={null}
       closable={false}
-      styles={{ body: { padding: 0, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' } }}
+      styles={{ body: { padding: 0, maxHeight: 'calc(100vh - 120px)'} }}
     >
       {/* Blue Header */}
-      <div className="bg-indigo-600 px-6 py-4 -mt-6 -mx-6 mb-0 flex items-start justify-between rounded-t-lg">
+      <div className="px-6 py-4 -mt-6 -mx-6 mb-0 flex items-start justify-between rounded-t-lg">
         <div>
-          <h2 className="text-lg font-semibold text-white">{interviewType === 'final' ? 'Schedule Final Interview' : 'Schedule Initial Interview'}</h2>
-          <p className="text-sm text-indigo-200 mt-0.5">{application.applicant_name}</p>
+          <h2 className="text-lg font-semibold text-dark">{interviewType === 'final' ? 'Schedule Final Interview' : 'Schedule Initial Interview'}</h2>
+          <p className="text-sm text-dark/50 mt-0.5">{application.applicant_name}</p>
         </div>
-        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors mt-1">
+        <button onClick={onClose} className="text-dark/80 hover:text-dark transition-colors mt-1">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>

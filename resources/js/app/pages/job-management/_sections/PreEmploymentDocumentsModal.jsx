@@ -196,12 +196,12 @@ export default function PreEmploymentDocumentsModal({ isOpen, onClose, applicati
       styles={{ body: { padding: 0, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' } }}
     >
       {/* Blue Header */}
-      <div className="bg-indigo-600 px-6 py-4 -mt-6 -mx-6 mb-0 flex items-start justify-between rounded-t-lg">
+      <div className="px-6 py-4 -mt-6 -mx-6 mb-0 flex items-start justify-between rounded-t-lg">
         <div>
-          <h2 className="text-lg font-semibold text-white">Pre-Employment Documents</h2>
-          <p className="text-sm text-indigo-200 mt-0.5">{application.applicant_name}</p>
+          <h2 className="text-lg font-semibold text-dark">Pre-Employment Documents</h2>
+          <p className="text-sm text-gray-500 mt-0.5">{application.applicant_name}</p>
         </div>
-        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors mt-1">
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-500 transition-colors mt-1">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>

@@ -4,13 +4,13 @@ import { Button, Input, Select, showDeleteConfirm, showSuccess } from '@/app/com
 import { UserPlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { deleteUser as deleteUserThunk } from '../_redux/user-management-thunk';
 
-export default function UsersTabSection({ 
-  filteredUsers, 
-  searchQuery, 
-  setSearchQuery, 
-  filterRole, 
-  setFilterRole, 
-  filterStatus, 
+export default function UsersTabSection({
+  filteredUsers,
+  searchQuery,
+  setSearchQuery,
+  filterRole,
+  setFilterRole,
+  filterStatus,
   setFilterStatus,
   allRoles,
   openCreateModal,
@@ -27,8 +27,8 @@ export default function UsersTabSection({
       onOk: async () => {
         try {
           await dispatch(deleteUserThunk(user.id)).unwrap();
-          showSuccess({ 
-            title: 'User Deleted', 
+          showSuccess({
+            title: 'User Deleted',
             content: `${user.name} has been deleted successfully.`
           });
         } catch (error) {
@@ -52,8 +52,8 @@ export default function UsersTabSection({
       </div>
 
       {/* Search and Filters */}
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1">
+      <div className="flex gap-4 mb-6 bg-white p-4 rounded-lg border border-gray-200">
+        <div className="flex-[2]">
           <Input
             placeholder="Search users..."
             value={searchQuery}
@@ -61,25 +61,29 @@ export default function UsersTabSection({
             leftIcon={<MagnifyingGlassIcon className="h-5 w-5" />}
           />
         </div>
-        <Select
-          value={filterRole}
-          onChange={(e) => setFilterRole(e.target.value)}
-          className="w-48"
-        >
-          <option value="all">All Roles</option>
-          {allRoles.map(role => (
-            <option key={role} value={role}>{role}</option>
-          ))}
-        </Select>
-        <Select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="w-40"
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </Select>
+
+        <div className="flex-1">
+          <Select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+          >
+            <option value="all">All Roles</option>
+            {allRoles.map(role => (
+              <option key={role} value={role}>{role}</option>
+            ))}
+          </Select>
+        </div>
+
+        <div className="flex-1">
+          <Select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </Select>
+        </div>
       </div>
 
       {/* Users Table */}

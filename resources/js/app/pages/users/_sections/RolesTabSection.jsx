@@ -4,7 +4,7 @@ import { Button, Input, Select, showDeleteConfirm, showSuccess } from '@/app/com
 import { ShieldCheckIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { deleteRole as deleteRoleThunk } from '../_redux/roles-thunk';
 
-export default function RolesTabSection({ 
+export default function RolesTabSection({
   filteredRoles,
   roleSearchQuery,
   setRoleSearchQuery,
@@ -24,8 +24,8 @@ export default function RolesTabSection({
       onOk: async () => {
         try {
           await dispatch(deleteRoleThunk(role.id)).unwrap();
-          showSuccess({ 
-            title: 'Role Deleted', 
+          showSuccess({
+            title: 'Role Deleted',
             content: `${role.name} has been deleted successfully.`
           });
         } catch (error) {
@@ -49,8 +49,8 @@ export default function RolesTabSection({
       </div>
 
       {/* Search and Filters */}
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1">
+      <div className="flex gap-4 mb-6 bg-white p-4 rounded-lg border border-gray-200">
+        <div className="flex-[2]">
           <Input
             placeholder="Search roles..."
             value={roleSearchQuery}
@@ -58,18 +58,20 @@ export default function RolesTabSection({
             leftIcon={<MagnifyingGlassIcon className="h-5 w-5" />}
           />
         </div>
-        <Select
-          value={filterLevel}
-          onChange={(e) => setFilterLevel(e.target.value)}
-          className="w-40"
-        >
-          <option value="all">All Levels</option>
-          <option value="5">Level 5</option>
-          <option value="4">Level 4</option>
-          <option value="3">Level 3</option>
-          <option value="2">Level 2</option>
-          <option value="1">Level 1</option>
-        </Select>
+
+        <div className="flex-1">
+          <Select
+            value={filterLevel}
+            onChange={(e) => setFilterLevel(e.target.value)}
+          >
+            <option value="all">All Levels</option>
+            <option value="5">Level 5</option>
+            <option value="4">Level 4</option>
+            <option value="3">Level 3</option>
+            <option value="2">Level 2</option>
+            <option value="1">Level 1</option>
+          </Select>
+        </div>
       </div>
 
       {/* Roles Table */}

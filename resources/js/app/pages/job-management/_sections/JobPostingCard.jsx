@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  BuildingOfficeIcon, 
-  MapPinIcon, 
-  UserGroupIcon, 
+import {
+  BuildingOfficeIcon,
+  MapPinIcon,
+  UserGroupIcon,
   CurrencyDollarIcon,
   CalendarIcon,
   UsersIcon,
@@ -60,7 +60,7 @@ export default function JobPostingCard({ job, onView }) {
   const closingDate = job.closing_date ? format(new Date(job.closing_date), 'M/d/yyyy') : '';
 
   return (
-    <div 
+    <div
       className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-300 transition-all cursor-pointer"
       onClick={() => onView(job)}
     >
@@ -104,7 +104,7 @@ export default function JobPostingCard({ job, onView }) {
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
         <div className="flex items-center gap-4 text-sm text-gray-500">
           <span className="flex items-center gap-1">
-            👤 {job.posted_by?.name || 'Unknown'}
+            👤 {job.posted_by ? `${job.posted_by.first_name} ${job.posted_by.last_name}` : 'Unknown'}
           </span>
           <span>•</span>
           <span className="flex items-center gap-1">

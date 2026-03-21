@@ -123,10 +123,10 @@ export default function UserManagementPage() {
     <AppLayout>
       <Head title="User Management" />
       
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8">
         {/* Tabs */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
+        <div className="-mx-16 sm:-mx-16 -my-10 lg:-mx-18 border-b border-gray-200 mb-6 bg-white">
+          <nav className="-mb-px flex space-x-8 pl-16 sm:pl-16 lg:pl-18" aria-label="Tabs">
             <button
               onClick={() => setActiveTab('users')}
               className={`${

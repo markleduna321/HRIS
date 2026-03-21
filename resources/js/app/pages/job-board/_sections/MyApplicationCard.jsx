@@ -10,6 +10,7 @@ const statusConfig = {
   final_interview: { label: 'Final Interview', bg: 'bg-purple-100 text-purple-700 border-purple-200' },
   job_offer: { label: 'Job Offer', bg: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
   accepted: { label: 'Contract Signing', bg: 'bg-teal-100 text-teal-700 border-teal-200' },
+  pre_employment_documents: { label: 'Pre-Employment Documents', bg: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
   hired: { label: 'Hired', bg: 'bg-green-100 text-green-700 border-green-200' },
   rejected: { label: 'Not Selected', bg: 'bg-red-100 text-red-700 border-red-200' },
 };

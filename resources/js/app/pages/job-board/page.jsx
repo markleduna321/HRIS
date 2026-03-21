@@ -101,58 +101,47 @@ export default function JobBoardPage({ user: pageUser }) {
   };
 
   const tabs = [
-    { id: 'job-openings', label: 'Job Openings', icon: BriefcaseIcon },
-    { id: 'my-applications', label: 'My Applications', icon: ClipboardDocumentListIcon },
-    { id: 'messages', label: 'Messages', icon: ChatBubbleLeftIcon },
+    { id: 'job-openings', name: 'Job Openings' },
+    { id: 'my-applications', name: 'My Applications' },
+    { id: 'messages', name: 'Messages' },
   ];
 
   return (
     <AppLayout>
       <Head title="Job Board" />
-      
-        {/* Header */}
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-          <h1 className="text-2xl font-bold text-gray-900">Job Board</h1>
-          <p className="text-gray-500 mt-1">Browse opportunities and track your applications</p>
-        </div>
-
+      <div className="px-4 sm:px-6 lg:px-8">
         {/* Tabs */}
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex gap-6" aria-label="Tabs">
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => dispatch(setActiveTab(tab.id))}
-                    className={`flex items-center gap-2 pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
-                      isActive
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <tab.icon className="h-5 w-5" />
-                    {tab.label}
-                    {tab.id === 'my-applications' && userApplications.length > 0 && (
-                      <span className={`ml-1 px-2 py-0.5 text-xs font-medium rounded-full ${
-                        isActive ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {userApplications.length}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+        <div className="-mx-16 sm:-mx-16 -my-10 lg:-mx-18 border-b border-gray-200 mb-6 bg-white">
+          <nav className="-mb-px flex space-x-8 pl-16 sm:pl-16 lg:pl-18" aria-label="Tabs">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => dispatch(setActiveTab(tab.id))}
+                className={`
+                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                  ${
+                    activeTab === tab.id
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                {tab.name}
+                {tab.id === 'my-applications' && userApplications.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-100 text-indigo-600">
+                    {userApplications.length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
         </div>
 
         {/* Tab Content */}
         {activeTab === 'job-openings' && (
           <>
             {/* Search and Filter */}
-            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            <div className="mb-6">
               <div className="bg-white rounded-lg border border-gray-200 p-4 flex gap-4">
                 <div className="flex-1 relative">
                   <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -178,7 +167,7 @@ export default function JobBoardPage({ user: pageUser }) {
             </div>
 
             {/* Job Listings */}
-            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="">
               {loading ? (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -204,7 +193,7 @@ export default function JobBoardPage({ user: pageUser }) {
         )}
 
         {activeTab === 'my-applications' && (
-          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div>
             <div className="mb-6">
               <h2 className="text-lg font-semibold text-gray-900">My Applications</h2>
               <p className="text-sm text-gray-500 mt-1">Track the progress of your job applications</p>
@@ -245,7 +234,7 @@ export default function JobBoardPage({ user: pageUser }) {
         )}
 
         {activeTab === 'messages' && (
-          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div>
             <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
               <ChatBubbleLeftIcon className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No messages</h3>
@@ -253,6 +242,8 @@ export default function JobBoardPage({ user: pageUser }) {
             </div>
           </div>
         )}
+
+      </div>
 
       {/* Modals */}
       <ViewJobModal

@@ -140,10 +140,10 @@ export default function JobManagementPage() {
   return (
     <AppLayout>
       <Head title="Job Management" />
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 ">
         {/* Tabs */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
+        <div className="-mx-16 sm:-mx-16 -my-10 lg:-mx-18 border-b border-gray-200 mb-6 bg-white">
+          <nav className="-mb-px flex space-x-8 pl-16 sm:pl-16 lg:pl-18" aria-label="Tabs">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -181,12 +181,17 @@ export default function JobManagementPage() {
             </div>
 
             {/* Search and Filters */}
-            <div className="flex gap-4 mb-6">
-              <input
-                type="search"
-                placeholder="Search job postings..."
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              />
+            <div className="bg-white p-5 rounded-lg shadow-md flex gap-4 mb-6">
+              <div className="flex-1 relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search Jobs..."
+                  value={filters.search}
+                  onChange={(e) => dispatch(setFilters({ search: e.target.value }))}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm"
+                />
+              </div>  
               <select
                 value={filters.status}
                 onChange={(e) => dispatch(setFilters({ status: e.target.value }))}
@@ -243,38 +248,13 @@ export default function JobManagementPage() {
               <p className="mt-2 text-sm text-gray-700">Review and manage job applications</p>
             </div>
 
-            <div className="grid grid-cols-5 gap-3 mb-3">
+            <div className="grid grid-cols-7 gap-3 mb-3">
               {[
                 { key: '', label: 'All', count: statusCounts.all },
                 { key: 'pending', label: 'New', count: statusCounts.pending },
                 { key: 'reviewing', label: 'Reviewing', count: statusCounts.reviewing },
                 { key: 'interview', label: 'Initial Interview', count: statusCounts.interview },
-                { key: 'shortlisted', label: 'Interview Passed', count: statusCounts.shortlisted },
-              ].map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => setApplicantStatusFilter(item.key)}
-                  className={`rounded-lg border p-3 text-center transition-colors ${
-                    applicantStatusFilter === item.key
-                      ? 'border-indigo-500 bg-indigo-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <p className={`text-xs ${applicantStatusFilter === item.key ? 'text-indigo-600' : 'text-gray-500'}`}>
-                    {item.label}
-                  </p>
-                  <p className={`text-xl font-bold mt-1 ${applicantStatusFilter === item.key ? 'text-indigo-600' : 'text-gray-900'}`}>
-                    {item.count}
-                  </p>
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-6 gap-3 mb-6">
-              {[
                 { key: 'final_interview', label: 'Final Interview', count: statusCounts.final_interview },
-                { key: 'job_offer', label: 'Job Offer', count: statusCounts.job_offer },
-                { key: 'accepted', label: 'Contract Signing', count: statusCounts.accepted },
-                { key: 'pre_employment_documents', label: 'Pre-Employment Docs', count: statusCounts.pre_employment_documents },
                 { key: 'hired', label: 'Hired', count: statusCounts.hired },
                 { key: 'rejected', label: 'Rejected', count: statusCounts.rejected },
               ].map((item) => (
@@ -296,6 +276,7 @@ export default function JobManagementPage() {
                 </button>
               ))}
             </div>
+          
 
             {/* Search & Filters */}
             <div className="bg-white rounded-lg border border-gray-200 p-4 flex gap-4 mb-6">
